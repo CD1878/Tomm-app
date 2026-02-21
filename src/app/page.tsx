@@ -1,65 +1,82 @@
-import Image from "next/image";
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Sparkles, CalendarDays, Settings, Mail as MailIcon } from 'lucide-react';
 
-export default function Home() {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+export default function LandingPage() {
+    return (
+        <div className="flex flex-col min-h-screen bg-white overflow-hidden relative selection:bg-[#253551]/20">
+            {/* Background gradients for luxury feel in light mode */}
+            <div className="absolute top-0 -left-1/4 w-1/2 h-1/2 bg-[#253551]/5 rounded-full blur-[120px] pointer-events-none" />
+            <div className="absolute bottom-0 -right-1/4 w-1/2 h-1/2 bg-[#253551]/5 rounded-full blur-[100px] pointer-events-none" />
+
+            {/* Header */}
+            <header className="px-6 lg:px-14 h-24 flex items-center justify-between border-b border-black/5 z-10 backdrop-blur-md bg-white/80 sticky top-0">
+                <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 bg-[#253551] text-white rounded-lg flex items-center justify-center font-bold text-xl tracking-tighter shadow-sm">
+                        T
+                    </div>
+                    <span className="font-semibold text-xl tracking-tight text-[#253551]">
+                        TOMM
+                    </span>
+                </div>
+                <nav className="hidden md:flex gap-8 text-sm font-medium text-black/60">
+                    <Link href="#features" className="hover:text-black transition-colors">Features</Link>
+                    <Link href="#how-it-works" className="hover:text-black transition-colors">How it works</Link>
+                </nav>
+                <Link href="/dashboard">
+                    <Button variant="secondary" className="bg-[#253551] text-white hover:bg-[#253551]/90 font-semibold rounded-full px-6 transition-all shadow-md hover:-translate-y-0.5">
+                        Log in to Dashboard
+                    </Button>
+                </Link>
+            </header>
+
+            {/* Hero Section */}
+            <main className="flex-1 flex flex-col items-center justify-center text-center px-4 pt-24 pb-32 z-10">
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#253551]/5 border border-[#253551]/10 text-[#253551] text-sm font-medium mb-8 backdrop-blur-sm">
+                    <Sparkles className="h-4 w-4 text-[#253551]" />
+                    <span>Top of Mind Marketing for Hospitality</span>
+                </div>
+
+                <h1 className="text-5xl md:text-7xl font-bold tracking-tighter text-black max-w-4xl leading-[1.1] mb-8 bg-clip-text text-transparent bg-gradient-to-b from-black to-black/70">
+                    Set-and-forget email marketing on autopilot
+                </h1>
+
+                <p className="text-lg md:text-xl text-black/60 max-w-2xl mb-12 font-light leading-relaxed">
+                    The easiest way to stay connected with your guests. We scrape your branding, analyze your menu, and generate a full year of hyper-personalized email campaigns.
+                </p>
+
+                <div className="flex flex-col sm:flex-row gap-4">
+                    <Link href="/settings">
+                        <Button size="lg" className="bg-[#253551] text-white hover:bg-[#253551]/90 font-semibold rounded-full px-8 h-14 text-base transition-all shadow-lg hover:-translate-y-0.5 w-full sm:w-auto">
+                            Get Started
+                        </Button>
+                    </Link>
+                    <Link href="/dashboard">
+                        <Button size="lg" variant="outline" className="border-black/10 bg-white text-[#253551] hover:bg-black/5 hover:text-[#253551] rounded-full px-8 h-14 text-base backdrop-blur-sm transition-all w-full sm:w-auto">
+                            View Demo Dashboard
+                        </Button>
+                    </Link>
+                </div>
+
+                {/* Value Props Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-32 max-w-5xl w-full text-left">
+                    <div className="p-8 rounded-3xl bg-white border border-black/5 shadow-sm transition-all hover:shadow-md hover:border-black/10">
+                        <Settings className="h-8 w-8 text-[#253551] mb-6" />
+                        <h3 className="text-xl font-semibold text-black mb-3">1. Connect & Scrape</h3>
+                        <p className="text-black/60 leading-relaxed font-light">Input your website and Instagram. Our AI extracts your exact branding, logos, colors, and business context.</p>
+                    </div>
+                    <div className="p-8 rounded-3xl bg-white border border-black/5 shadow-sm transition-all hover:shadow-md hover:border-black/10">
+                        <Sparkles className="h-8 w-8 text-[#253551] mb-6" />
+                        <h3 className="text-xl font-semibold text-black mb-3">2. Auto-Generate</h3>
+                        <p className="text-black/60 leading-relaxed font-light">Instantly populate 12 months of tailored email campaigns based on your menu, location, and seasonal events.</p>
+                    </div>
+                    <div className="p-8 rounded-3xl bg-white border border-black/5 shadow-sm transition-all hover:shadow-md hover:border-black/10">
+                        <CalendarDays className="h-8 w-8 text-[#253551] mb-6" />
+                        <h3 className="text-xl font-semibold text-black mb-3">3. Set & Forget</h3>
+                        <p className="text-black/60 leading-relaxed font-light">Review your year in minutes. We'll automatically send beautifully designed emails to your guests every month.</p>
+                    </div>
+                </div>
+            </main>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
-  );
+    );
 }
