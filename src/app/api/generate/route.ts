@@ -22,7 +22,7 @@ const CampaignsSchema = z.object({
 export async function POST(req: Request) {
     try {
         // Initialize Firecrawl inside the handler to prevent static build errors if env var is missing
-        const firecrawl = new FirecrawlApp({ apiKey: process.env.FIRECRAWL_API_KEY || 'dummy_key' });
+        const firecrawl = new FirecrawlApp({ apiKey: process.env.FIRECRAWL_API_KEY || 'dummy_key' }) as any;
 
         const { websiteUrl, globalInstructions, monthlyInstructions } = await req.json();
 
@@ -30,18 +30,31 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'websiteUrl is required' }, { status: 400 });
         }
 
-        // 1. Scrape the website using Firecrawl
-        console.log(`Scraping: ${websiteUrl}`);
-        const scrapeResult = await firecrawl.scrape(websiteUrl, {
-            formats: ['markdown'],
-            onlyMainContent: true,
+        // 1. Scrape the website using Firecrawl (Deep Crawl)
+        console.log(`Starting Deep Crawl: ${websiteUrl}`);
+        const crawlResponse = await firecrawl.crawlUrl(websiteUrl, {
+            limit: 10, // Crawl up to 10 subpages (Home, Menu, Groups, Contact, etc.)
+            scrapeOptions: {
+                formats: ['markdown'],
+                onlyMainContent: true,
+            }
         });
 
-        if (!scrapeResult.markdown) {
-            return NextResponse.json({ error: 'Failed to scrape website' }, { status: 500 });
+        if (!crawlResponse.success || !crawlResponse.data) {
+            return NextResponse.json({ error: 'Failed to crawl website' }, { status: 500 });
         }
 
-        const websiteContent = scrapeResult.markdown.substring(0, 15000); // Limit context window
+        // Combine all the scraped pages into one massive context document
+        let websiteContent = "--- COMPILED BUSINESS WEBSITE DATA ---\n\n";
+        for (const page of crawlResponse.data) {
+            if (page.markdown) {
+                websiteContent += `\n\n--- PAGE: ${page.metadata?.title || page.url} ---\n`;
+                websiteContent += page.markdown;
+            }
+        }
+
+        // Limit context window to prevent blowing up the OpenAI token limit
+        websiteContent = websiteContent.substring(0, 30000);
 
         // 2. Generate 12 months of emails using OpenAI
         console.log('Generating 12-month campaign plan...');
