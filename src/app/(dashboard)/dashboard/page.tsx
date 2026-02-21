@@ -173,7 +173,15 @@ export default function DashboardPage() {
                             <div className="mb-4 h-24 bg-slate-50/80 rounded-lg border border-[#253551]/10 flex items-center justify-center text-black/20 group-hover:border-[#253551]/20 group-hover:bg-[#253551]/5 transition-colors">
                                 <ImageIcon className="w-6 h-6 mb-1 opacity-50 text-[#253551]" />
                             </div>
-                            <p className="line-clamp-3 leading-relaxed">{camp.summary}</p>
+                            <p className="line-clamp-3 leading-relaxed mb-4">{camp.summary}</p>
+
+                            <div className="mt-auto pt-4 border-t border-[#253551]/10">
+                                <Label className="text-xs font-semibold text-[#253551] mb-2 block">Custom Instructions for {camp.name}</Label>
+                                <Textarea
+                                    placeholder={`e.g. Focus on our new terrace this month...`}
+                                    className="h-16 text-xs bg-white border-[#253551]/20 resize-none focus-visible:ring-1 focus-visible:ring-[#253551] placeholder:text-black/30 w-full"
+                                />
+                            </div>
                         </CardContent>
 
                         <CardFooter className="pt-0 relative z-10 border-t border-[#253551]/5 mt-4 flex items-center justify-between bg-slate-50 py-3">

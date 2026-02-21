@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -77,6 +78,16 @@ export default function SettingsPage() {
                                         className="pl-10 bg-white border-[#253551]/20 focus-visible:ring-1 focus-visible:ring-[#253551] text-black placeholder:text-black/40 h-11"
                                     />
                                 </div>
+                            </div>
+
+                            <div className="space-y-2 pt-2 border-t border-[#253551]/10">
+                                <Label htmlFor="instructions" className="text-[#253551] font-medium">Global Custom Instructions</Label>
+                                <p className="text-xs text-black/50 mb-2">These rules will be applied to ALL 12 generated email campaigns.</p>
+                                <Textarea
+                                    id="instructions"
+                                    placeholder="e.g. Always emphasize our new sun terrace, keep the tone very casual and energetic, mention our signature espresso martini."
+                                    className="min-h-[100px] bg-white border-[#253551]/20 focus-visible:ring-1 focus-visible:ring-[#253551] text-black placeholder:text-black/40 resize-none"
+                                />
                             </div>
                         </CardContent>
                         <CardFooter className="border-t border-[#253551]/10 bg-slate-50 mt-4 py-4 flex items-center justify-between">
