@@ -39,8 +39,8 @@ export default function DashboardLayout({
                                 key={item.href}
                                 href={item.href}
                                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${isActive
-                                        ? 'bg-[#253551]/10 text-[#253551] shadow-sm'
-                                        : 'text-black/60 hover:text-[#253551] hover:bg-black/5'
+                                    ? 'bg-[#253551]/10 text-[#253551] shadow-sm'
+                                    : 'text-black/60 hover:text-[#253551] hover:bg-black/5'
                                     }`}
                             >
                                 <item.icon className={`h-4 w-4 ${isActive ? 'text-[#253551]' : 'text-black/40'}`} />
@@ -50,11 +50,19 @@ export default function DashboardLayout({
                     })}
                 </nav>
 
-                <div className="p-4 border-t border-[#253551]/10">
-                    <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-black/60 hover:text-[#253551] hover:bg-black/5 transition-all cursor-pointer">
+                <div className="p-4 border-t border-[#253551]/10 mt-auto">
+                    <button
+                        onClick={async () => {
+                            const { createClient } = await import('@/utils/supabase/client');
+                            const supabase = createClient();
+                            await supabase.auth.signOut();
+                            window.location.href = '/login';
+                        }}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-black/60 hover:text-[#253551] hover:bg-black/5 transition-all text-left"
+                    >
                         <LogOut className="h-4 w-4 text-black/40" />
                         Sign Out
-                    </div>
+                    </button>
                 </div>
             </aside>
 
