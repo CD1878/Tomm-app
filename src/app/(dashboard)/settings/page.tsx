@@ -17,6 +17,12 @@ export default function SettingsPage() {
         setIsScraping(true);
         setScrapeSuccess(false);
 
+        // Save global instructions to local storage for the dashboard to use
+        const instructionsElement = document.getElementById('instructions') as HTMLTextAreaElement;
+        if (instructionsElement) {
+            localStorage.setItem('tomm_global_instructions', instructionsElement.value);
+        }
+
         // Simulate API call to scrape
         setTimeout(() => {
             setIsScraping(false);

@@ -34,6 +34,7 @@ export default function DashboardPage() {
     const [isGenerating, setIsGenerating] = useState(false);
     const [campaigns, setCampaigns] = useState<any[]>([]); // Default to empty, wait for fetch
     const [selectedCampaign, setSelectedCampaign] = useState<any>(null);
+    const [monthlyInstructions, setMonthlyInstructions] = useState<Record<number, string>>({});
 
     const fetchCampaigns = async () => {
         const { data, error } = await supabase
@@ -68,12 +69,21 @@ export default function DashboardPage() {
     const handleGenerate = async () => {
         setIsGenerating(true);
         try {
+            // In a real app the global instructions would be fetched from Supabase profiles table,
+            // but for this MVP iteration, we will grab it from the settings page if it was saved locally,
+            // or just rely on the per-month instructions added on this dashboard.
+            const globalInstructions = localStorage.getItem('tomm_global_instructions') || '';
+
             const response = await fetch('/api/generate', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ websiteUrl: 'https://www.cafehetpaardje.nl/' }),
+                body: JSON.stringify({
+                    websiteUrl: 'https://www.cafehetpaardje.nl/',
+                    globalInstructions,
+                    monthlyInstructions
+                }),
             });
 
             if (!response.ok) {
@@ -179,6 +189,8 @@ export default function DashboardPage() {
                                 <Label className="text-xs font-semibold text-[#253551] mb-2 block">Custom Instructions for {camp.name}</Label>
                                 <Textarea
                                     placeholder={`e.g. Focus on our new terrace this month...`}
+                                    value={monthlyInstructions[camp.month] || ''}
+                                    onChange={(e) => setMonthlyInstructions(prev => ({ ...prev, [camp.month]: e.target.value }))}
                                     className="h-16 text-xs bg-white border-[#253551]/20 resize-none focus-visible:ring-1 focus-visible:ring-[#253551] placeholder:text-black/30 w-full"
                                 />
                             </div>

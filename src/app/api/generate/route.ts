@@ -24,7 +24,7 @@ export async function POST(req: Request) {
         // Initialize Firecrawl inside the handler to prevent static build errors if env var is missing
         const firecrawl = new FirecrawlApp({ apiKey: process.env.FIRECRAWL_API_KEY || 'dummy_key' });
 
-        const { websiteUrl } = await req.json();
+        const { websiteUrl, globalInstructions, monthlyInstructions } = await req.json();
 
         if (!websiteUrl) {
             return NextResponse.json({ error: 'websiteUrl is required' }, { status: 400 });
@@ -45,6 +45,22 @@ export async function POST(req: Request) {
 
         // 2. Generate 12 months of emails using OpenAI
         console.log('Generating 12-month campaign plan...');
+
+        let instructionsInjection = '';
+
+        if (globalInstructions) {
+            instructionsInjection += `\nCRITICAL GLOBAL INSTRUCTIONS FROM THE OWNER (MUST BE OBEYED FOR EVERY EMAIL):\n"${globalInstructions}"\n`;
+        }
+
+        if (monthlyInstructions && Object.keys(monthlyInstructions).length > 0) {
+            instructionsInjection += `\nCRITICAL MONTHLY INSTRUCTIONS (MUST OVERRIDE GENERAL ASSUMPTIONS FOR THESE SPECIFIC MONTHS):\n`;
+            for (const [monthNum, instruction] of Object.entries(monthlyInstructions)) {
+                if (instruction) {
+                    instructionsInjection += `- FOR MONTH ${monthNum}: "${instruction}"\n`;
+                }
+            }
+        }
+
         const { object } = await generateObject({
             model: openai('gpt-4o'),
             schema: CampaignsSchema,
@@ -55,13 +71,14 @@ export async function POST(req: Request) {
         ---
         ${websiteContent}
         ---
-
+        ${instructionsInjection}
+        
         Instructions:
         1. Analyze the business based on the scraped website content (vibe, menu, unique selling points, if they have a terrace, event spaces, etc.).
-        2. Create exactly 12 distinct email campaigns, one for each month of the year.
+        2. Create exactly 12 distinct email campaigns, one for each month of the year (Month 1 = Jan, 2 = Feb, etc).
         3. Make the content highly relevant to the business but generic enough that the owner doesn't NEED to edit it (though they can).
         4. Tie campaigns to seasonal hospitality trends (e.g., January: Healthy start/Dry January; February: Valentine's; Spring: Terrace opening; December: Holiday bookings).
-        5. The tone should match the presumed brand voice from the website.
+        5. The tone should match the presumed brand voice from the website, UNLESS dictated otherwise by the Global Instructions.
         6. Provide a short summary of what you deduced about the business in 'scrapedContextSummary'.
       `,
         });
