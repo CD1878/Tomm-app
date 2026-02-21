@@ -91,9 +91,10 @@ export async function POST(req: Request) {
         2. Create exactly 12 distinct email campaigns, one for each month of the year (Month 1 = Jan, 2 = Feb, etc).
         3. Make the body text beautiful, engaging, and structured. Use short paragraphs and warm hospitality greetings. Do not just output one boring summary line. It should read like a premium marketing email.
         4. IMAGE URL: Scan the provided website markdown for real image links (e.g. .jpg, .png, .webp). Try to find an image url that matches the theme of the month (e.g., drinks for summer, cozy interior for winter). If you find one, include it as a full absolute URL in the imageUrl field.
-        5. Tie campaigns to seasonal hospitality trends (e.g., January: Healthy start; February: Valentine's; Spring: Terrace opening; December: Holiday bookings).
-        6. The tone should match the presumed brand voice from the website, UNLESS dictated otherwise by the Global Instructions.
-        7. Provide a short summary of what you deduced about the business in 'scrapedContextSummary'.
+        5. CALL TO ACTION / BOOKING LINK: You MUST include a clear, prominent booking link or "Reserveer Hier" button at the bottom of the email body text. Use standard HTML link formatting pointing back to the website URL or their reservation system. This is crucial for tracking conversion analytics.
+        6. Tie campaigns to seasonal hospitality trends (e.g., January: Healthy start; February: Valentine's; Spring: Terrace opening; December: Holiday bookings).
+        7. The tone should match the presumed brand voice from the website, UNLESS dictated otherwise by the Global Instructions.
+        8. Provide a short summary of what you deduced about the business in 'scrapedContextSummary'.
       `,
         });
 

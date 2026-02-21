@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, CalendarDays, Edit3, Send, CheckCircle2, Loader2, Image as ImageIcon } from "lucide-react";
+import { Sparkles, CalendarDays, Edit3, Send, CheckCircle2, Loader2, Image as ImageIcon, Eye, MousePointerClick, Users, Link as LinkIcon } from "lucide-react";
 import {
     Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter
 } from "@/components/ui/dialog";
@@ -14,12 +14,36 @@ import { Textarea } from "@/components/ui/textarea";
 import { createClient } from "@/utils/supabase/client";
 import { useEffect } from 'react';
 
-// Mock data
+// Mock data with rich content for the UI
 const mockCampaigns = [
-    { month: 1, name: "January", subject: "Een Gezond Begin bij Café Het Paardje 🐴", summary: "Highlighting dry january specials like our 0.0% beers and healthy lunch wraps.", status: "scheduled", date: "Jan 5th" },
-    { month: 2, name: "February", subject: "Liefde & Gezelligheid: Valentine's Day ♥️", summary: "Promoting our cozy corner tables and special Valentine's sharing platters.", status: "scheduled", date: "Feb 5th" },
-    { month: 3, name: "March", subject: "Lente in je Bol! 🌷", summary: "First sunny days on the Gerard Douplein terrace. Get ready!", status: "scheduled", date: "Mar 5th" },
-    { month: 4, name: "April", subject: "Paasbrunch bij Het Paardje 🐰", summary: "Family brunch specials and extended opening hours for the Easter weekend.", status: "scheduled", date: "Apr 5th" },
+    {
+        month: 1, name: "January", subject: "Een Gezond Begin bij Café Het Paardje 🐴",
+        summary: "Highlighting dry january specials like our 0.0% beers and healthy lunch wraps.",
+        body: "Lieve gasten,\n\nNa al die feestdagen snappen we dat januari best pittig kan zijn. Tijd voor een fris en gezond begin!\n\nDaarom hebben we deze maand speciale Dry January mocktails en extra veel lichte, gezonde lunchopties aan ons menu toegevoegd. Kom gezellig langs om toch de sfeer van Het Paardje te ervaren, maar dan helemaal zen.\n\nZien we jullie snel?\n\nLiefs,\nTeam Het Paardje",
+        imageUrl: "https://images.unsplash.com/photo-1544145945-f90425340c7e?q=80&w=800&auto=format&fit=crop",
+        status: "sent", date: "Jan 5th"
+    },
+    {
+        month: 2, name: "February", subject: "Liefde & Gezelligheid: Valentine's Day ♥️",
+        summary: "Promoting our cozy corner tables and special Valentine's sharing platters.",
+        body: "Hey geliefden en vriendschappen,\n\nFebruari staat in het teken van de liefde! Of je nu je partner wilt verrassen of gewoon met je beste vrienden wil proosten, bij ons zit je goed.\n\nWe hebben speciale 'Sharing Platters' samengesteld: heerlijke hapjes om samen te delen onder het genot van een goed glas wijn of speciaalbier.\n\nReserveer snel jullie vaste hoekje online!\n\nProost,\nTeam Het Paardje",
+        imageUrl: "https://images.unsplash.com/photo-1543821731-15fe9aa37576?q=80&w=800&auto=format&fit=crop",
+        status: "sent", date: "Feb 5th"
+    },
+    {
+        month: 3, name: "March", subject: "Lente in je Bol! 🌷",
+        summary: "First sunny days on the Gerard Douplein terrace. Get ready!",
+        body: "Hi allemaal,\n\nVoelen jullie het ook? De dagen worden langer en de zon laat zich weer vaker zien op het Gerard Douplein!\n\nOns terras wordt langzaam weer de warmste plek van De Pijp. Hoog tijd om die winterjas thuis te laten en te genieten van de eerste échte zonnestralen met een ijskoud biertje in je hand.\n\nTot snel op het terras!\n\nLiefs,\nTeam Het Paardje",
+        imageUrl: "https://images.unsplash.com/photo-1527018263385-7ba6ab512ea6?q=80&w=800&auto=format&fit=crop",
+        status: "scheduled", date: "Mar 5th"
+    },
+    {
+        month: 4, name: "April", subject: "Paasbrunch bij Het Paardje 🐰",
+        summary: "Family brunch specials and extended opening hours for the Easter weekend.",
+        body: "Vrolijk Pasen!\n\nHebben jullie al plannen voor het paasweekend? Bij Het Paardje pakken we dit jaar lekker uit met een uitgebreide Paasbrunch.\n\nVerwacht verse eitjes, huisgemaakte baksels en natuurlijk de gezelligste sfeer van Amsterdam. Perfect voor de hele familie.\n\nVergeet niet tijdig een tafeltje veilig te stellen via onze website.\n\nGroetjes,\nTeam Het Paardje",
+        imageUrl: "https://images.unsplash.com/photo-1554522435-081033b00c9e?q=80&w=800&auto=format&fit=crop",
+        status: "scheduled", date: "Apr 5th"
+    },
     { month: 5, name: "May", subject: "Zon, Bier & Bitterballen ☀️", summary: "Official terrace season kick-off party announcement. Cold beers waiting.", status: "scheduled", date: "May 5th" },
     { month: 6, name: "June", subject: "Nieuwe Zomerse Lunchkaart 🥪", summary: "Introducing the new lightweight summer menu items and fresh salads.", status: "scheduled", date: "Jun 5th" },
     { month: 7, name: "July", subject: "Verkoeling op het Terras 🧊", summary: "Highlighting the refreshing craft beers and cold drinks to beat the heat.", status: "scheduled", date: "Jul 5th" },
@@ -226,7 +250,12 @@ export default function DashboardPage() {
                                     <ImageIcon className="w-6 h-6 mb-1 opacity-50 text-[#253551]" />
                                 </div>
                             )}
-                            <p className="line-clamp-3 leading-relaxed mb-4">{camp.summary}</p>
+                            <div className="mt-2 text-black/80 text-sm overflow-hidden flex-1 relative">
+                                <p className="whitespace-pre-wrap line-clamp-[8] pb-8 leading-relaxed">
+                                    {camp.body || `Hey there,\n\n${camp.summary}\n\nReserveer Hier: https://www.cafehetpaardje.nl\n\nCheers,\n[Your Restaurant]`}
+                                </p>
+                                <div className="absolute bottom-0 left-0 w-full h-12 bg-gradient-to-t from-white to-transparent pointer-events-none" />
+                            </div>
 
                             <div className="mt-auto pt-4 border-t border-[#253551]/10">
                                 <Label className="text-xs font-semibold text-[#253551] mb-2 block">Custom Instructions for {camp.name}</Label>
@@ -237,15 +266,49 @@ export default function DashboardPage() {
                                     className="h-16 text-xs bg-white border-[#253551]/20 resize-none focus-visible:ring-1 focus-visible:ring-[#253551] placeholder:text-black/30 w-full"
                                 />
                             </div>
+
+                            {/* Analytics Mock Overview */}
+                            {camp.status === 'sent' ? (
+                                <div className="mt-4 pt-4 border-t border-[#253551]/10 grid grid-cols-3 gap-2 text-center">
+                                    <div className="flex flex-col items-center">
+                                        <div className="flex items-center text-[#253551] mb-1">
+                                            <Users className="w-3 h-3 mr-1" />
+                                            <span className="text-xs font-bold">1,240</span>
+                                        </div>
+                                        <span className="text-[10px] text-black/40 uppercase tracking-wider">Sent</span>
+                                    </div>
+                                    <div className="flex flex-col items-center">
+                                        <div className="flex items-center text-green-600 mb-1">
+                                            <Eye className="w-3 h-3 mr-1" />
+                                            <span className="text-xs font-bold">58%</span>
+                                        </div>
+                                        <span className="text-[10px] text-black/40 uppercase tracking-wider">Opened</span>
+                                    </div>
+                                    <div className="flex flex-col items-center">
+                                        <div className="flex items-center text-blue-600 mb-1">
+                                            <MousePointerClick className="w-3 h-3 mr-1" />
+                                            <span className="text-xs font-bold">14%</span>
+                                        </div>
+                                        <span className="text-[10px] text-black/40 uppercase tracking-wider">Clicks</span>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="mt-4 pt-4 border-t border-[#253551]/10 flex items-center justify-between">
+                                    <span className="text-xs text-black/40 flex items-center"><LinkIcon className="w-3 h-3 mr-1" /> Tracking CTA Clicks</span>
+                                    <span className="text-xs font-semibold text-[#253551] flex items-center"><Users className="w-3 h-3 mr-1" /> ~1,240 Reach</span>
+                                </div>
+                            )}
                         </CardContent>
 
                         <CardFooter className="pt-0 relative z-10 border-t border-[#253551]/5 mt-4 flex items-center justify-between bg-slate-50 py-3">
                             <Badge className={
-                                camp.status === 'scheduled'
-                                    ? 'bg-green-100 text-green-700 hover:bg-green-200 shadow-none border-none'
-                                    : 'bg-amber-100 text-amber-700 hover:bg-amber-200 shadow-none border-none'
+                                camp.status === 'sent'
+                                    ? 'bg-slate-200 text-slate-700 hover:bg-slate-300 shadow-none border-none'
+                                    : camp.status === 'scheduled'
+                                        ? 'bg-green-100 text-green-700 hover:bg-green-200 shadow-none border-none'
+                                        : 'bg-amber-100 text-amber-700 hover:bg-amber-200 shadow-none border-none'
                             }>
-                                {camp.status === 'draft' ? 'Draft' : 'Scheduled'}
+                                {camp.status === 'draft' ? 'Draft' : camp.status === 'sent' ? 'Sent' : 'Scheduled'}
                             </Badge>
 
                             <div className="flex items-center gap-2">
