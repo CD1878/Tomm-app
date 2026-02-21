@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -12,16 +12,22 @@ import { Globe, Instagram, Upload, RefreshCw, CheckCircle2, Loader2 } from "luci
 export default function SettingsPage() {
     const [isScraping, setIsScraping] = useState(false);
     const [scrapeSuccess, setScrapeSuccess] = useState(false);
+    const [instructions, setInstructions] = useState("");
+
+    // Load saved instructions on mount
+    useEffect(() => {
+        const savedInstructions = localStorage.getItem('tomm_global_instructions');
+        if (savedInstructions) {
+            setInstructions(savedInstructions);
+        }
+    }, []);
 
     const handleScrape = () => {
         setIsScraping(true);
         setScrapeSuccess(false);
 
         // Save global instructions to local storage for the dashboard to use
-        const instructionsElement = document.getElementById('instructions') as HTMLTextAreaElement;
-        if (instructionsElement) {
-            localStorage.setItem('tomm_global_instructions', instructionsElement.value);
-        }
+        localStorage.setItem('tomm_global_instructions', instructions);
 
         // Simulate API call to scrape
         setTimeout(() => {
@@ -91,6 +97,8 @@ export default function SettingsPage() {
                                 <p className="text-xs text-black/50 mb-2">These rules will be applied to ALL 12 generated email campaigns.</p>
                                 <Textarea
                                     id="instructions"
+                                    value={instructions}
+                                    onChange={(e) => setInstructions(e.target.value)}
                                     placeholder="e.g. Always emphasize our new sun terrace, keep the tone very casual and energetic, mention our signature espresso martini."
                                     className="min-h-[100px] bg-white border-[#253551]/20 focus-visible:ring-1 focus-visible:ring-[#253551] text-black placeholder:text-black/40 resize-none"
                                 />
