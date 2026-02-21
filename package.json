@@ -12,6 +12,8 @@
     "@ai-sdk/openai": "^3.0.30",
     "@hookform/resolvers": "^5.2.2",
     "@mendable/firecrawl-js": "^4.13.0",
+    "@supabase/ssr": "^0.8.0",
+    "@supabase/supabase-js": "^2.97.0",
     "ai": "^6.0.97",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
