@@ -54,6 +54,8 @@ export default function DashboardPage() {
                 name: dbCamp.month_name,
                 subject: dbCamp.subject,
                 summary: dbCamp.summary,
+                body: dbCamp.bodyText,
+                imageUrl: dbCamp.image_url,
                 status: dbCamp.status,
                 date: dbCamp.send_date
             }));
@@ -131,6 +133,8 @@ export default function DashboardPage() {
                         month_name: campaign.monthName,
                         subject: campaign.subject,
                         summary: campaign.summary || campaign.bodyText?.substring(0, 100) + '...',
+                        bodyText: campaign.bodyText,
+                        image_url: campaign.imageUrl,
                         send_date: `${campaign.monthName.substring(0, 3)} 5th`,
                         status: 'draft'
                     }]);
@@ -212,9 +216,16 @@ export default function DashboardPage() {
                         </CardHeader>
 
                         <CardContent className="pt-4 flex-1 relative z-10 text-black/60 text-sm font-light">
-                            <div className="mb-4 h-24 bg-slate-50/80 rounded-lg border border-[#253551]/10 flex items-center justify-center text-black/20 group-hover:border-[#253551]/20 group-hover:bg-[#253551]/5 transition-colors">
-                                <ImageIcon className="w-6 h-6 mb-1 opacity-50 text-[#253551]" />
-                            </div>
+                            {camp.imageUrl ? (
+                                <div className="mb-4 h-32 w-full rounded-lg border border-[#253551]/10 overflow-hidden relative group-hover:border-[#253551]/20 transition-colors">
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img src={camp.imageUrl} alt={camp.subject} className="w-full h-full object-cover" />
+                                </div>
+                            ) : (
+                                <div className="mb-4 h-24 bg-slate-50/80 rounded-lg border border-[#253551]/10 flex items-center justify-center text-black/20 group-hover:border-[#253551]/20 group-hover:bg-[#253551]/5 transition-colors">
+                                    <ImageIcon className="w-6 h-6 mb-1 opacity-50 text-[#253551]" />
+                                </div>
+                            )}
                             <p className="line-clamp-3 leading-relaxed mb-4">{camp.summary}</p>
 
                             <div className="mt-auto pt-4 border-t border-[#253551]/10">
@@ -281,7 +292,7 @@ export default function DashboardPage() {
                                                     <Label htmlFor="body" className="text-[#253551] font-medium">Email Body</Label>
                                                     <Textarea
                                                         id="body"
-                                                        defaultValue={`Hey there,\n\n${camp.summary}\n\nBook your table now via our website.\n\nCheers,\n[Your Restaurant]`}
+                                                        defaultValue={camp.body || `Hey there,\n\n${camp.summary}\n\nBook your table now via our website.\n\nCheers,\n[Your Restaurant]`}
                                                         className="min-h-[150px] bg-white text-black border-[#253551]/20 focus-visible:ring-1 focus-visible:ring-[#253551]"
                                                     />
                                                 </div>

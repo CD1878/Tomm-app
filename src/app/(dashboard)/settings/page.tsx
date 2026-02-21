@@ -155,6 +155,22 @@ export default function SettingsPage() {
                                 <Button variant="outline" className="border-[#253551]/20 bg-white hover:bg-[#253551]/5 h-14 text-[#253551] font-medium shadow-sm">Zenchef</Button>
                                 <Button variant="outline" className="border-[#253551]/20 bg-white hover:bg-[#253551]/5 h-14 text-[#253551] font-medium shadow-sm">Guestplan</Button>
                             </div>
+
+                            <div className="mt-8 pt-8 border-t border-[#253551]/10">
+                                <Label htmlFor="single-email" className="text-[#253551] font-medium">Quick Add Subscriber</Label>
+                                <p className="text-sm text-black/50 mb-3">Manually add a single email address to your audience (e.g. for testing purposes).</p>
+                                <div className="flex gap-3">
+                                    <Input
+                                        id="single-email"
+                                        placeholder="test@example.com"
+                                        type="email"
+                                        className="bg-white border-[#253551]/20 focus-visible:ring-1 focus-visible:ring-[#253551] h-11"
+                                    />
+                                    <Button className="bg-[#253551] text-white hover:bg-[#253551]/90 shadow-sm h-11 px-6">
+                                        Add
+                                    </Button>
+                                </div>
+                            </div>
                         </CardContent>
                     </Card>
                 </TabsContent>
