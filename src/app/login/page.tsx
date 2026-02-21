@@ -1,11 +1,14 @@
 import { login, signup } from '@/app/login/actions'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { CheckCircle2 } from 'lucide-react'
+import { SubmitButtons } from './submit-buttons'
 
-export default function LoginPage() {
+export default async function LoginPage(props: { searchParams: Promise<{ error?: string }> }) {
+    const searchParams = await props.searchParams;
+    const error = searchParams?.error;
+
     return (
         <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4 relative overflow-hidden">
             {/* Background decoration */}
@@ -26,6 +29,12 @@ export default function LoginPage() {
                     </CardHeader>
                     <CardContent>
                         <form className="space-y-4">
+                            {error && (
+                                <div className="p-3 bg-red-50 text-red-600 border border-red-200 rounded-md text-sm text-center font-medium shadow-sm">
+                                    {error}
+                                </div>
+                            )}
+
                             <div className="space-y-2">
                                 <Label htmlFor="email" className="text-[#253551] font-medium">Email address</Label>
                                 <Input
@@ -48,14 +57,7 @@ export default function LoginPage() {
                                 />
                             </div>
 
-                            <div className="pt-4 space-y-3">
-                                <Button formAction={login} className="w-full bg-[#253551] text-white hover:bg-[#253551]/90 shadow-sm transition-all h-11 font-semibold text-base">
-                                    Log in
-                                </Button>
-                                <Button formAction={signup} variant="outline" className="w-full border-[#253551]/20 bg-white text-[#253551] hover:bg-slate-50 h-11 font-medium transition-all">
-                                    Create new account
-                                </Button>
-                            </div>
+                            <SubmitButtons loginAction={login} signupAction={signup} />
                         </form>
                     </CardContent>
                     <CardFooter className="bg-slate-50 border-t border-[#253551]/10 py-4 flex justify-center mt-4">
