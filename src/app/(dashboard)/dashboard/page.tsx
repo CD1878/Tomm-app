@@ -11,7 +11,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { supabase } from "@/utils/supabase";
+import { createClient } from "@/utils/supabase/client";
 import { useEffect } from 'react';
 
 // Mock data
@@ -37,6 +37,7 @@ export default function DashboardPage() {
     const [monthlyInstructions, setMonthlyInstructions] = useState<Record<number, string>>({});
 
     const fetchCampaigns = async () => {
+        const supabase = createClient();
         const { data, error } = await supabase
             .from('campaigns')
             .select('*')
@@ -69,6 +70,9 @@ export default function DashboardPage() {
     const handleGenerate = async () => {
         setIsGenerating(true);
         try {
+            const supabase = createClient();
+            const { data: { user } } = await supabase.auth.getUser();
+
             // In a real app the global instructions would be fetched from Supabase profiles table,
             // but for this MVP iteration, we will grab it from the settings page if it was saved locally,
             // or just rely on the per-month instructions added on this dashboard.
@@ -96,6 +100,7 @@ export default function DashboardPage() {
                 // For MVP: We will save these generated campaigns to the Supabase database
                 for (const campaign of data.data.campaigns) {
                     await supabase.from('campaigns').insert([{
+                        user_id: user?.id,
                         month: campaign.month,
                         month_name: campaign.monthName,
                         subject: campaign.subject,
@@ -109,6 +114,7 @@ export default function DashboardPage() {
                 // Fallback for different response format
                 for (const campaign of data.campaigns) {
                     await supabase.from('campaigns').insert([{
+                        user_id: user?.id,
                         month: campaign.month,
                         month_name: campaign.monthName || campaign.name,
                         subject: campaign.subject,
