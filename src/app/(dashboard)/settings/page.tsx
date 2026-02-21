@@ -7,12 +7,15 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Globe, Instagram, Upload, RefreshCw, CheckCircle2, Loader2 } from "lucide-react"
+import { Globe, Instagram, Upload, RefreshCw, CheckCircle2, Loader2, Users, Mail, Trash2 } from "lucide-react"
 
 export default function SettingsPage() {
     const [isScraping, setIsScraping] = useState(false);
     const [scrapeSuccess, setScrapeSuccess] = useState(false);
     const [instructions, setInstructions] = useState("");
+    const [newEmail, setNewEmail] = useState("");
+    const [addSuccess, setAddSuccess] = useState(false);
+    const [subscribers, setSubscribers] = useState<{ email: string, source: string, date: string }[]>([]);
 
     // Load saved instructions on mount
     useEffect(() => {
@@ -20,7 +23,45 @@ export default function SettingsPage() {
         if (savedInstructions) {
             setInstructions(savedInstructions);
         }
+
+        const savedSubs = localStorage.getItem('tomm_demo_subscribers');
+        if (savedSubs) {
+            setSubscribers(JSON.parse(savedSubs));
+        } else {
+            // Initial mock data to make the MVP look populated
+            const initialMock = [
+                { email: "johan@example.com", source: "Tebi Import", date: "Oct 12, 2023" },
+                { email: "sarah.peeters@gmail.com", source: "Tebi Import", date: "Nov 05, 2023" },
+                { email: "info@business-partner.nl", source: "Website Form", date: "Jan 22, 2024" },
+            ];
+            setSubscribers(initialMock);
+            localStorage.setItem('tomm_demo_subscribers', JSON.stringify(initialMock));
+        }
     }, []);
+
+    const handleAddSubscriber = () => {
+        if (!newEmail || !newEmail.includes('@')) return;
+
+        const newSub = {
+            email: newEmail,
+            source: "Manual Add",
+            date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+        };
+
+        const updatedSubs = [newSub, ...subscribers];
+        setSubscribers(updatedSubs);
+        localStorage.setItem('tomm_demo_subscribers', JSON.stringify(updatedSubs));
+        setNewEmail("");
+
+        setAddSuccess(true);
+        setTimeout(() => setAddSuccess(false), 3000);
+    };
+
+    const handleRemoveSubscriber = (emailToRemove: string) => {
+        const updatedSubs = subscribers.filter(s => s.email !== emailToRemove);
+        setSubscribers(updatedSubs);
+        localStorage.setItem('tomm_demo_subscribers', JSON.stringify(updatedSubs));
+    };
 
     const handleScrape = () => {
         setIsScraping(true);
@@ -131,11 +172,17 @@ export default function SettingsPage() {
                 <TabsContent value="audience" className="space-y-6">
                     <Card className="bg-white border-[#253551]/10 shadow-sm relative overflow-hidden">
                         <div className="absolute top-0 left-0 w-32 h-32 bg-[#253551]/5 rounded-full blur-3xl -z-10 pointer-events-none" />
-                        <CardHeader>
-                            <CardTitle className="text-xl text-[#253551]">Import Contacts</CardTitle>
-                            <CardDescription className="text-black/60">
-                                Upload a CSV of your guests or connect directly to your reservation system (Tebi, Zenchef, Guestplan).
-                            </CardDescription>
+                        <CardHeader className="flex flex-row items-start justify-between">
+                            <div>
+                                <CardTitle className="text-xl text-[#253551]">Audience & Contacts</CardTitle>
+                                <CardDescription className="text-black/60">
+                                    Manage your mailing list. We send your automated campaigns to these addresses.
+                                </CardDescription>
+                            </div>
+                            <div className="bg-[#253551]/5 px-4 py-2 rounded-lg border border-[#253551]/10 flex flex-col items-center">
+                                <span className="text-2xl font-bold text-[#253551]">{subscribers.length}</span>
+                                <span className="text-[10px] uppercase font-bold text-black/40 tracking-wider">Active</span>
+                            </div>
                         </CardHeader>
                         <CardContent>
                             <div className="border-2 border-dashed border-[#253551]/20 rounded-xl p-12 text-center hover:bg-[#253551]/5 transition-colors cursor-pointer group bg-slate-50/50">
@@ -164,13 +211,73 @@ export default function SettingsPage() {
                                         id="single-email"
                                         placeholder="test@example.com"
                                         type="email"
+                                        value={newEmail}
+                                        onChange={(e) => setNewEmail(e.target.value)}
+                                        onKeyDown={(e) => e.key === 'Enter' && handleAddSubscriber()}
                                         className="bg-white border-[#253551]/20 focus-visible:ring-1 focus-visible:ring-[#253551] h-11"
                                     />
-                                    <Button className="bg-[#253551] text-white hover:bg-[#253551]/90 shadow-sm h-11 px-6">
-                                        Add
+                                    <Button onClick={handleAddSubscriber} className="bg-[#253551] text-white hover:bg-[#253551]/90 shadow-sm h-11 px-6 min-w-[100px] transition-all">
+                                        {addSuccess ? <CheckCircle2 className="h-5 w-5 text-green-400" /> : "Add"}
                                     </Button>
                                 </div>
+                                {addSuccess && <p className="text-sm text-green-600 mt-2 font-medium animate-in fade-in zoom-in duration-300">Subscriber successfully added!</p>}
                             </div>
+
+                            <div className="mt-8 pt-8 border-t border-[#253551]/10">
+                                <div className="flex items-center gap-2 mb-4">
+                                    <Users className="w-5 h-5 text-[#253551]" />
+                                    <h3 className="font-semibold text-[#253551]">Subscriber Overview</h3>
+                                </div>
+
+                                <div className="border border-[#253551]/10 rounded-lg overflow-hidden bg-white">
+                                    <div className="max-h-[300px] overflow-y-auto">
+                                        <table className="w-full text-sm text-left">
+                                            <thead className="text-xs text-black/40 uppercase bg-slate-50 border-b border-[#253551]/10 sticky top-0 z-10">
+                                                <tr>
+                                                    <th className="px-4 py-3 font-medium">Email Address</th>
+                                                    <th className="px-4 py-3 font-medium hidden sm:table-cell">Source</th>
+                                                    <th className="px-4 py-3 font-medium hidden sm:table-cell">Date Added</th>
+                                                    <th className="px-4 py-3 text-right">Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {subscribers.map((sub, idx) => (
+                                                    <tr key={idx} className="border-b border-[#253551]/5 hover:bg-slate-50/50 transition-colors last:border-0 relative">
+                                                        <td className="px-4 py-3 font-medium text-[#253551] flex items-center gap-2">
+                                                            <Mail className="w-3 h-3 text-black/30" />
+                                                            {sub.email}
+                                                        </td>
+                                                        <td className="px-4 py-3 text-black/60 hidden sm:table-cell">
+                                                            <span className="bg-slate-100 text-slate-600 px-2 py-1 rounded text-xs border border-slate-200 shadow-sm">
+                                                                {sub.source}
+                                                            </span>
+                                                        </td>
+                                                        <td className="px-4 py-3 text-black/40 hidden sm:table-cell">{sub.date}</td>
+                                                        <td className="px-4 py-3 text-right">
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                onClick={() => handleRemoveSubscriber(sub.email)}
+                                                                className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full"
+                                                            >
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </Button>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                                {subscribers.length === 0 && (
+                                                    <tr>
+                                                        <td colSpan={4} className="px-4 py-8 text-center text-black/40">
+                                                            No subscribers yet. Import contacts or add one manually.
+                                                        </td>
+                                                    </tr>
+                                                )}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
                         </CardContent>
                     </Card>
                 </TabsContent>
