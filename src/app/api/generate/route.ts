@@ -4,9 +4,6 @@ import { generateObject } from 'ai';
 import { openai } from '@ai-sdk/openai';
 import { z } from 'zod';
 
-// Initialize Firecrawl (requires API key in env)
-const firecrawl = new FirecrawlApp({ apiKey: process.env.FIRECRAWL_API_KEY || '' });
-
 const EmailSchema = z.object({
     month: z.number(),
     monthName: z.string(),
@@ -24,6 +21,9 @@ const CampaignsSchema = z.object({
 
 export async function POST(req: Request) {
     try {
+        // Initialize Firecrawl inside the handler to prevent static build errors if env var is missing
+        const firecrawl = new FirecrawlApp({ apiKey: process.env.FIRECRAWL_API_KEY || 'dummy_key' });
+
         const { websiteUrl } = await req.json();
 
         if (!websiteUrl) {
