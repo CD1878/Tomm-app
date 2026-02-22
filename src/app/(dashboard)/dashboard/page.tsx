@@ -341,7 +341,7 @@ export default function DashboardPage() {
             address: "Gerard Douplein 1",
             zipCode: "1072 VR, Amsterdam",
             website: "www.cafehetpaardje.nl",
-            logoUrl: "https://logo.clearbit.com/cafehetpaardje.nl"
+            logoUrl: "https://static1.squarespace.com/static/65b3b1379d0e202bc26a0b09/t/65b3b6bb22a08118c45aba8d/1706276539946/logo+het+paardje.png"
         };
 
         return (
