@@ -81,31 +81,45 @@ export default function DashboardPage() {
 
     const fetchCampaigns = async () => {
         const supabase = createClient();
-        const { data, error } = await supabase
-            .from('campaigns')
-            .select('*')
-            .order('month', { ascending: true });
+        const { data: { user } } = await supabase.auth.getUser();
 
-        if (error) {
-            console.error('Error fetching campaigns from Supabase:', error);
-        } else if (data && data.length > 0) {
-            // Map DB columns to our UI expectations
-            const mappedCampaigns = data.map(dbCamp => ({
-                id: dbCamp.id,
-                month: dbCamp.month,
-                name: dbCamp.month_name,
-                subject: dbCamp.subject,
-                summary: dbCamp.summary,
-                body: dbCamp.bodyText,
-                imageUrl: dbCamp.image_url,
-                status: dbCamp.status,
-                date: dbCamp.send_date,
-                analytics: dbCamp.status === 'sent' ? mockAnalyticsStats : undefined
-            }));
-            setCampaigns(mappedCampaigns);
+        if (user) {
+            const { data, error } = await supabase
+                .from('campaigns')
+                .select('*')
+                .order('month', { ascending: true });
+
+            if (error) {
+                console.error('Error fetching campaigns from Supabase:', error);
+                // Fallback on error
+                setCampaigns(mockCampaigns);
+            } else if (data && data.length > 0) {
+                // Map DB columns to our UI expectations
+                const mappedCampaigns = data.map(dbCamp => ({
+                    id: dbCamp.id,
+                    month: dbCamp.month,
+                    name: dbCamp.month_name,
+                    subject: dbCamp.subject,
+                    summary: dbCamp.summary,
+                    body: dbCamp.bodyText,
+                    imageUrl: dbCamp.image_url,
+                    status: dbCamp.status,
+                    date: dbCamp.send_date,
+                    analytics: dbCamp.status === 'sent' ? mockAnalyticsStats : undefined
+                }));
+                setCampaigns(mappedCampaigns);
+            } else {
+                // Fallback to mock data ONLY if the database is completely empty
+                setCampaigns(mockCampaigns);
+            }
         } else {
-            // Fallback to mock data ONLY if the database is completely empty
-            setCampaigns(mockCampaigns);
+            // Unauthenticated bypass mode: use localStorage to persist fake state
+            const localData = localStorage.getItem('mock_campaigns_state');
+            if (localData) {
+                setCampaigns(JSON.parse(localData));
+            } else {
+                setCampaigns(mockCampaigns);
+            }
         }
     };
 
@@ -115,15 +129,26 @@ export default function DashboardPage() {
             const supabase = createClient();
             const { data: { user } } = await supabase.auth.getUser();
 
-            if (!user) return;
+            if (user) {
+                const { error } = await supabase
+                    .from('campaigns')
+                    .update({ status: 'scheduled' })
+                    .eq('month', month)
+                    .eq('user_id', user.id);
 
-            const { error } = await supabase
-                .from('campaigns')
-                .update({ status: 'scheduled' })
-                .eq('month', month)
-                .eq('user_id', user.id);
-
-            if (error) throw error;
+                if (error) throw error;
+            } else {
+                // LocalStorage update
+                const localData = localStorage.getItem('mock_campaigns_state');
+                if (localData) {
+                    const parsed = JSON.parse(localData);
+                    const newCamps = parsed.map((c: any) => c.month === month ? { ...c, status: 'scheduled' } : c);
+                    localStorage.setItem('mock_campaigns_state', JSON.stringify(newCamps));
+                } else {
+                    const newCamps = mockCampaigns.map((c: any) => c.month === month ? { ...c, status: 'scheduled' } : c);
+                    localStorage.setItem('mock_campaigns_state', JSON.stringify(newCamps));
+                }
+            }
 
             // Refresh list
             fetchCampaigns();
@@ -211,22 +236,27 @@ export default function DashboardPage() {
             const supabase = createClient();
             const { data: { user } } = await supabase.auth.getUser();
 
-            for (const mockCamp of mockCampaigns) {
-                // Check if already exists to avoid duplicates
-                const { data: existing } = await supabase.from('campaigns').select('id').eq('month', mockCamp.month).eq('user_id', user?.id).single();
-                if (!existing) {
-                    await supabase.from('campaigns').insert([{
-                        user_id: user?.id,
-                        month: mockCamp.month,
-                        month_name: mockCamp.name,
-                        subject: mockCamp.subject,
-                        summary: mockCamp.summary,
-                        bodyText: mockCamp.body,
-                        image_url: mockCamp.imageUrl,
-                        send_date: mockCamp.date,
-                        status: mockCamp.status
-                    }]);
+            if (user) {
+                for (const mockCamp of mockCampaigns) {
+                    // Check if already exists to avoid duplicates
+                    const { data: existing } = await supabase.from('campaigns').select('id').eq('month', mockCamp.month).eq('user_id', user.id).single();
+                    if (!existing) {
+                        await supabase.from('campaigns').insert([{
+                            user_id: user.id,
+                            month: mockCamp.month,
+                            month_name: mockCamp.name,
+                            subject: mockCamp.subject,
+                            summary: mockCamp.summary,
+                            bodyText: mockCamp.body,
+                            image_url: mockCamp.imageUrl,
+                            send_date: mockCamp.date,
+                            status: mockCamp.status
+                        }]);
+                    }
                 }
+            } else {
+                // Save to localStorage for demo persistence
+                localStorage.setItem('mock_campaigns_state', JSON.stringify(mockCampaigns));
             }
 
             fetchCampaigns();
@@ -252,13 +282,24 @@ export default function DashboardPage() {
                     businessData={businessData}
                     onSave={async (updated) => {
                         const supabase = createClient();
-                        if (updated.id) {
+                        const { data: { user } } = await supabase.auth.getUser();
+
+                        if (user && updated.id) {
                             await supabase.from('campaigns').update({
                                 subject: updated.subject,
                                 summary: updated.summary,
                                 bodyText: updated.body
                             }).eq('id', updated.id);
+                        } else if (!user) {
+                            // Update local storage
+                            const localData = localStorage.getItem('mock_campaigns_state');
+                            if (localData) {
+                                const parsed = JSON.parse(localData);
+                                const newCamps = parsed.map((c: any) => c.month === updated.month ? { ...c, subject: updated.subject, summary: updated.summary, body: updated.body } : c);
+                                localStorage.setItem('mock_campaigns_state', JSON.stringify(newCamps));
+                            }
                         }
+
                         fetchCampaigns();
                         setSelectedCampaign(null);
                     }}
