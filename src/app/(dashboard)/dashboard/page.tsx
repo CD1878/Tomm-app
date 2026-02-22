@@ -359,7 +359,15 @@ export default function DashboardPage() {
                             {camp.imageUrl ? (
                                 <div className="mb-4 h-32 w-full rounded-lg border border-[#253551]/10 overflow-hidden relative group-hover:border-[#253551]/20 transition-colors">
                                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                                    <img src={camp.imageUrl} alt={camp.subject} className="w-full h-full object-cover" />
+                                    <img
+                                        src={camp.imageUrl}
+                                        alt={camp.subject}
+                                        className="w-full h-full object-cover"
+                                        onError={(e) => {
+                                            // Fallback if the AI hallucinated a broken URL or image is missing
+                                            e.currentTarget.src = "https://images.unsplash.com/photo-1414235077428-33898ed1e829?q=80&w=800&auto=format&fit=crop";
+                                        }}
+                                    />
                                 </div>
                             ) : (
                                 <div className="mb-4 h-24 bg-slate-50/80 rounded-lg border border-[#253551]/10 flex items-center justify-center text-black/20 group-hover:border-[#253551]/20 group-hover:bg-[#253551]/5 transition-colors">
