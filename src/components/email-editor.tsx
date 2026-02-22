@@ -187,11 +187,11 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
     }, []);
 
     return (
-        <div className="flex h-[85vh] w-full bg-white overflow-hidden rounded-lg">
+        <div className="flex flex-col lg:flex-row h-[85vh] w-full bg-white overflow-hidden rounded-lg">
             {/* Left/Center Panel - Canvas / Email Preview */}
             <div className="flex-1 bg-[#F9FAFB] overflow-y-auto relative no-scrollbar pb-20">
                 {/* Simulated Email Container */}
-                <div className="max-w-[600px] mx-auto bg-white min-h-[800px] my-12 shadow-sm border border-black/5 relative pb-16">
+                <div className="max-w-[600px] mx-2 sm:mx-auto bg-white min-h-[800px] my-4 sm:my-12 shadow-sm border border-black/5 relative pb-16">
 
                     {/* Header Logo */}
                     <div className="py-10 flex flex-col items-center justify-center border-b border-black/5 px-8">
@@ -376,9 +376,9 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
                 </div>
             </div>
 
-            {/* Right Panel - Settings Sidebar */}
-            <div className="w-[360px] bg-white border-l border-black/10 flex flex-col overflow-y-auto no-scrollbar shadow-xl z-20">
-                <div className="px-6 py-4 border-b border-black/5">
+            {/* Right Panel - Settings & Properties */}
+            <div className="w-full lg:w-[360px] bg-white border-t lg:border-t-0 lg:border-l border-black/10 flex flex-col overflow-y-auto no-scrollbar shadow-xl z-20">
+                <div className="px-6 py-4 border-b border-black/5 hidden lg:block">
                     <h3 className="text-center font-medium text-[#111827]">Email</h3>
                 </div>
 

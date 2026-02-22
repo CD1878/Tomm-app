@@ -40,9 +40,18 @@ export async function POST(request: Request) {
             if (data.data.links && Array.isArray(data.data.links)) {
                 // Common reservation platforms and keywords
                 const reservationRegex = /(formitable\.com|resengo\.com|zenchef\.com|tebi\.com|guestplan\.com|thefork\.com|book|reserveer|reservation)/i;
-                const foundLink = data.data.links.find((link: string) => reservationRegex.test(link) && link.startsWith('http'));
+                const foundLink = data.data.links.find((link: string) => reservationRegex.test(link));
+
                 if (foundLink) {
-                    reservationUrl = foundLink;
+                    // Resolve relative URLs or anchor tags back to the original domain if needed
+                    if (foundLink.startsWith('http')) {
+                        reservationUrl = foundLink;
+                    } else if (foundLink.startsWith('/') || foundLink.startsWith('#')) {
+                        const baseUrl = new URL(url);
+                        reservationUrl = `${baseUrl.origin}${foundLink.startsWith('/') ? '' : '/'}${foundLink}`;
+                    } else {
+                        reservationUrl = foundLink;
+                    }
                 }
             }
 
