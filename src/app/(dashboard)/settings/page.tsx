@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Globe, Instagram, Upload, RefreshCw, CheckCircle2, Loader2, Users, Mail, Trash2 } from "lucide-react"
+import { motion } from "framer-motion"
 
 export default function SettingsPage() {
     const [isScraping, setIsScraping] = useState(false);
@@ -88,10 +89,15 @@ export default function SettingsPage() {
     };
 
     return (
-        <div className="space-y-8 max-w-4xl">
+        <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="space-y-8 max-w-4xl"
+        >
             <div>
-                <h1 className="text-3xl font-bold tracking-tight text-[#253551] mb-2">Settings</h1>
-                <p className="text-black/60 font-light">Configure your business profile and audience connections. TOMM uses this data to generate your personalized campaigns.</p>
+                <h1 className="text-3xl font-bold tracking-tight text-[#253551] text-balance mb-2">Settings</h1>
+                <p className="text-black/60 font-light text-pretty">Configure your business profile and audience connections. TOMM uses this data to generate your personalized campaigns.</p>
             </div>
 
             <Tabs defaultValue="brand" className="w-full">
@@ -108,8 +114,8 @@ export default function SettingsPage() {
                     <Card className="bg-white border-[#253551]/10 shadow-sm overflow-hidden relative">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-[#253551]/5 rounded-full blur-3xl -z-10 pointer-events-none" />
                         <CardHeader>
-                            <CardTitle className="text-xl text-[#253551]">Digital Footprint</CardTitle>
-                            <CardDescription className="text-black/60">
+                            <CardTitle className="text-xl text-[#253551] text-balance">Digital Footprint</CardTitle>
+                            <CardDescription className="text-black/60 text-pretty">
                                 Provide your online presence. We will scrape your website and Instagram to learn your brand colors, voice, and venue details.
                             </CardDescription>
                         </CardHeader>
@@ -179,8 +185,8 @@ export default function SettingsPage() {
                         <div className="absolute top-0 left-0 w-32 h-32 bg-[#253551]/5 rounded-full blur-3xl -z-10 pointer-events-none" />
                         <CardHeader className="flex flex-row items-start justify-between">
                             <div>
-                                <CardTitle className="text-xl text-[#253551]">Audience & Contacts</CardTitle>
-                                <CardDescription className="text-black/60">
+                                <CardTitle className="text-xl text-balance text-[#253551]">Audience & Contacts</CardTitle>
+                                <CardDescription className="text-black/60 text-pretty">
                                     Manage your mailing list. We send your automated campaigns to these addresses.
                                 </CardDescription>
                             </div>
@@ -308,6 +314,6 @@ export default function SettingsPage() {
                     </Card>
                 </TabsContent>
             </Tabs>
-        </div>
+        </motion.div>
     )
 }

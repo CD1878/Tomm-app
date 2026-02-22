@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { createClient } from "@/utils/supabase/client";
 import { useEffect } from 'react';
 import { EmailEditor } from "@/components/email-editor";
+import { motion } from 'framer-motion';
 
 // Mock data with rich content for the UI
 const mockAnalyticsStats = {
@@ -312,13 +313,18 @@ export default function DashboardPage() {
     return (
         <div className="space-y-8">
             {/* Header Area */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-[#253551]/10 pb-6">
+            <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4 }}
+                className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-[#253551]/10 pb-6"
+            >
                 <div>
                     <Badge variant="outline" className="mb-3 bg-white border-[#253551]/20 text-[#253551] shadow-sm">
                         <CheckCircle2 className="w-3 h-3 mr-1 text-green-500" /> System Active
                     </Badge>
-                    <h1 className="text-3xl font-bold tracking-tight text-[#253551] mb-2">Campaign Overview</h1>
-                    <p className="text-black/60 font-light max-w-xl">
+                    <h1 className="text-3xl font-bold tracking-tight text-balance text-[#253551] mb-2">Campaign Overview</h1>
+                    <p className="text-black/60 font-light text-pretty max-w-xl">
                         Here are your fully automated email campaigns for the next 12 months, tailored to your brand. They will send automatically on the 5th of every month.
                     </p>
                 </div>
@@ -334,222 +340,236 @@ export default function DashboardPage() {
                         <><Sparkles className="mr-2 h-4 w-4" /> Re-Generate with AI</>
                     )}
                 </Button>
-            </div>
+            </motion.div>
 
             {/* 12 Month Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {campaigns.map((camp) => (
-                    <Card key={camp.month} className="bg-white border-[#253551]/10 shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden flex flex-col h-full group">
-                        {/* Subtle glow on hover */}
-                        <div className="absolute inset-0 bg-gradient-to-br from-[#253551]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+            <motion.div
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ staggerChildren: 0.05, delayChildren: 0.1 }}
+            >
+                {campaigns.map((camp, i) => (
+                    <motion.div
+                        key={camp.month}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.4, delay: i * 0.05 }}
+                        className="h-full"
+                    >
+                        <Card className="bg-white border-[#253551]/10 shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden flex flex-col h-full group">
+                            {/* Subtle glow on hover */}
+                            <div className="absolute inset-0 bg-gradient-to-br from-[#253551]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
 
-                        <CardHeader className="pb-3 border-b border-[#253551]/5 relative z-10">
-                            <div className="flex justify-between items-start mb-1">
-                                <span className="text-xs font-bold uppercase tracking-wider text-[#253551]/70">
-                                    {camp.name}
-                                </span>
-                                <Badge variant="secondary" className="bg-[#253551]/10 text-[#253551] border-none text-[10px] uppercase font-bold shadow-none">
-                                    <CalendarDays className="w-3 h-3 mr-1" /> {camp.date}
-                                </Badge>
-                            </div>
-                            <CardTitle className="text-lg leading-tight text-[#253551]">{camp.subject}</CardTitle>
-                        </CardHeader>
+                            <CardHeader className="pb-3 border-b border-[#253551]/5 relative z-10">
+                                <div className="flex justify-between items-start mb-1">
+                                    <span className="text-xs font-bold uppercase tracking-wider tabular-nums text-[#253551]/70">
+                                        {camp.name}
+                                    </span>
+                                    <Badge variant="secondary" className="bg-[#253551]/10 text-[#253551] border-none tabular-nums text-[10px] uppercase font-bold shadow-none">
+                                        <CalendarDays className="w-3 h-3 mr-1" /> {camp.date}
+                                    </Badge>
+                                </div>
+                                <CardTitle className="text-lg leading-tight text-balance text-[#253551]">{camp.subject}</CardTitle>
+                            </CardHeader>
 
-                        <CardContent className="pt-4 flex-1 relative z-10 text-black/60 text-sm font-light">
-                            {camp.imageUrl ? (
-                                <div className="mb-4 h-32 w-full rounded-lg border border-[#253551]/10 overflow-hidden relative group-hover:border-[#253551]/20 transition-colors">
-                                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                                    <img
-                                        src={camp.imageUrl}
-                                        alt={camp.subject}
-                                        className="w-full h-full object-cover"
-                                        onError={(e) => {
-                                            // Fallback if the AI hallucinated a broken URL or image is missing
-                                            e.currentTarget.src = "https://images.unsplash.com/photo-1414235077428-33898ed1e829?q=80&w=800&auto=format&fit=crop";
-                                        }}
+
+                            <CardContent className="pt-4 flex-1 relative z-10 text-black/60 text-sm font-light">
+                                {camp.imageUrl ? (
+                                    <div className="mb-4 h-32 w-full rounded-lg border border-[#253551]/10 overflow-hidden relative group-hover:border-[#253551]/20 transition-colors">
+                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                        <img
+                                            src={camp.imageUrl}
+                                            alt={camp.subject}
+                                            className="w-full h-full object-cover"
+                                            onError={(e) => {
+                                                // Fallback if the AI hallucinated a broken URL or image is missing
+                                                e.currentTarget.src = "https://images.unsplash.com/photo-1414235077428-33898ed1e829?q=80&w=800&auto=format&fit=crop";
+                                            }}
+                                        />
+                                    </div>
+                                ) : (
+                                    <div className="mb-4 h-24 bg-slate-50/80 rounded-lg border border-[#253551]/10 flex items-center justify-center text-black/20 group-hover:border-[#253551]/20 group-hover:bg-[#253551]/5 transition-colors">
+                                        <ImageIcon className="w-6 h-6 mb-1 opacity-50 text-[#253551]" />
+                                    </div>
+                                )}
+                                <div className="mt-2 text-black/80 text-sm overflow-hidden flex-1 relative">
+                                    <p className="whitespace-pre-wrap line-clamp-[8] pb-8 leading-relaxed">
+                                        {camp.body || `Hey there,\n\n${camp.summary}\n\nReserveer Hier: https://www.cafehetpaardje.nl\n\nCheers,\n[Your Restaurant]`}
+                                    </p>
+                                    <div className="absolute bottom-0 left-0 w-full h-12 bg-gradient-to-t from-white to-transparent pointer-events-none" />
+                                </div>
+
+                                <div className="mt-auto pt-4 border-t border-[#253551]/10">
+                                    <Label className="text-xs font-semibold text-[#253551] mb-2 block">Custom Instructions for {camp.name}</Label>
+                                    <Textarea
+                                        placeholder={`e.g. Focus on our new terrace this month...`}
+                                        value={monthlyInstructions[camp.month] || ''}
+                                        onChange={(e) => setMonthlyInstructions(prev => ({ ...prev, [camp.month]: e.target.value }))}
+                                        className="h-16 text-xs bg-white border-[#253551]/20 resize-none focus-visible:ring-1 focus-visible:ring-[#253551] placeholder:text-black/30 w-full"
                                     />
                                 </div>
-                            ) : (
-                                <div className="mb-4 h-24 bg-slate-50/80 rounded-lg border border-[#253551]/10 flex items-center justify-center text-black/20 group-hover:border-[#253551]/20 group-hover:bg-[#253551]/5 transition-colors">
-                                    <ImageIcon className="w-6 h-6 mb-1 opacity-50 text-[#253551]" />
-                                </div>
-                            )}
-                            <div className="mt-2 text-black/80 text-sm overflow-hidden flex-1 relative">
-                                <p className="whitespace-pre-wrap line-clamp-[8] pb-8 leading-relaxed">
-                                    {camp.body || `Hey there,\n\n${camp.summary}\n\nReserveer Hier: https://www.cafehetpaardje.nl\n\nCheers,\n[Your Restaurant]`}
-                                </p>
-                                <div className="absolute bottom-0 left-0 w-full h-12 bg-gradient-to-t from-white to-transparent pointer-events-none" />
-                            </div>
 
-                            <div className="mt-auto pt-4 border-t border-[#253551]/10">
-                                <Label className="text-xs font-semibold text-[#253551] mb-2 block">Custom Instructions for {camp.name}</Label>
-                                <Textarea
-                                    placeholder={`e.g. Focus on our new terrace this month...`}
-                                    value={monthlyInstructions[camp.month] || ''}
-                                    onChange={(e) => setMonthlyInstructions(prev => ({ ...prev, [camp.month]: e.target.value }))}
-                                    className="h-16 text-xs bg-white border-[#253551]/20 resize-none focus-visible:ring-1 focus-visible:ring-[#253551] placeholder:text-black/30 w-full"
-                                />
-                            </div>
-
-                            {/* Analytics Mock Overview */}
-                            {camp.status === 'sent' ? (
-                                <div className="mt-4 pt-4 border-t border-[#253551]/10 grid grid-cols-3 gap-2 text-center">
-                                    <div className="flex flex-col items-center">
-                                        <div className="flex items-center text-[#253551] mb-1">
-                                            <Users className="w-3 h-3 mr-1" />
-                                            <span className="text-xs font-bold">1,240</span>
+                                {/* Analytics Mock Overview */}
+                                {camp.status === 'sent' ? (
+                                    <div className="mt-4 pt-4 border-t border-[#253551]/10 grid grid-cols-3 gap-2 text-center">
+                                        <div className="flex flex-col items-center">
+                                            <div className="flex items-center tabular-nums text-[#253551] mb-1">
+                                                <Users className="w-3 h-3 mr-1" />
+                                                <span className="text-xs font-bold">1,240</span>
+                                            </div>
+                                            <span className="text-[10px] text-black/40 uppercase tracking-wider">Sent</span>
                                         </div>
-                                        <span className="text-[10px] text-black/40 uppercase tracking-wider">Sent</span>
-                                    </div>
-                                    <div className="flex flex-col items-center">
-                                        <div className="flex items-center text-green-600 mb-1">
-                                            <Eye className="w-3 h-3 mr-1" />
-                                            <span className="text-xs font-bold">{camp.analytics?.openPercent || 58}%</span>
+                                        <div className="flex flex-col items-center">
+                                            <div className="flex items-center tabular-nums text-green-600 mb-1">
+                                                <Eye className="w-3 h-3 mr-1" />
+                                                <span className="text-xs font-bold">{camp.analytics?.openPercent || 58}%</span>
+                                            </div>
+                                            <span className="text-[10px] text-black/40 uppercase tracking-wider">Opened</span>
                                         </div>
-                                        <span className="text-[10px] text-black/40 uppercase tracking-wider">Opened</span>
-                                    </div>
-                                    <div className="flex flex-col items-center">
-                                        <div className="flex items-center text-blue-600 mb-1">
-                                            <MousePointerClick className="w-3 h-3 mr-1" />
-                                            <span className="text-xs font-bold">14%</span>
+                                        <div className="flex flex-col items-center">
+                                            <div className="flex items-center tabular-nums text-blue-600 mb-1">
+                                                <MousePointerClick className="w-3 h-3 mr-1" />
+                                                <span className="text-xs font-bold">14%</span>
+                                            </div>
+                                            <span className="text-[10px] text-black/40 uppercase tracking-wider">Clicks</span>
                                         </div>
-                                        <span className="text-[10px] text-black/40 uppercase tracking-wider">Clicks</span>
                                     </div>
-                                </div>
-                            ) : (
-                                <div className="mt-4 pt-4 border-t border-[#253551]/10 flex items-center justify-between">
-                                    <span className="text-xs text-black/40 flex items-center"><LinkIcon className="w-3 h-3 mr-1" /> Tracking CTA Clicks</span>
-                                    <span className="text-xs font-semibold text-[#253551] flex items-center"><Users className="w-3 h-3 mr-1" /> ~1,240 Reach</span>
-                                </div>
-                            )}
-                        </CardContent>
+                                ) : (
+                                    <div className="mt-4 pt-4 border-t border-[#253551]/10 flex items-center justify-between">
+                                        <span className="text-xs text-black/40 flex items-center"><LinkIcon className="w-3 h-3 mr-1" /> Tracking CTA Clicks</span>
+                                        <span className="text-xs font-semibold text-[#253551] flex items-center"><Users className="w-3 h-3 mr-1" /> ~1,240 Reach</span>
+                                    </div>
+                                )}
+                            </CardContent>
 
-                        <CardFooter className="pt-0 relative z-10 border-t border-[#253551]/5 mt-4 flex items-center justify-between bg-slate-50 py-3">
-                            <Badge className={
-                                camp.status === 'sent'
-                                    ? 'bg-slate-200 text-slate-700 hover:bg-slate-300 shadow-none border-none'
-                                    : camp.status === 'scheduled'
-                                        ? 'bg-green-100 text-green-700 hover:bg-green-200 shadow-none border-none'
-                                        : 'bg-amber-100 text-amber-700 hover:bg-amber-200 shadow-none border-none'
-                            }>
-                                {camp.status === 'draft' ? 'Draft' : camp.status === 'sent' ? 'Sent' : 'Scheduled'}
-                            </Badge>
+                            <CardFooter className="pt-0 relative z-10 border-t border-[#253551]/5 mt-4 flex items-center justify-between bg-slate-50 py-3">
+                                <Badge className={
+                                    camp.status === 'sent'
+                                        ? 'bg-slate-200 text-slate-700 hover:bg-slate-300 shadow-none border-none'
+                                        : camp.status === 'scheduled'
+                                            ? 'bg-green-100 text-green-700 hover:bg-green-200 shadow-none border-none'
+                                            : 'bg-amber-100 text-amber-700 hover:bg-amber-200 shadow-none border-none'
+                                }>
+                                    {camp.status === 'draft' ? 'Draft' : camp.status === 'sent' ? 'Sent' : 'Scheduled'}
+                                </Badge>
 
-                            <div className="flex items-center gap-2">
-                                {camp.status === 'sent' && (
-                                    <Dialog>
-                                        <DialogTrigger asChild>
-                                            <Button variant="ghost" size="icon" className="h-8 w-8 text-[#253551]/50 hover:text-[#253551] hover:bg-[#253551]/10 rounded-full" onClick={() => setSelectedAnalytics(camp)}>
-                                                <BarChart3 className="h-4 w-4" />
-                                            </Button>
-                                        </DialogTrigger>
-                                        {selectedAnalytics?.month === camp.month && (
-                                            <DialogContent className="sm:max-w-[800px] bg-[#f2f4f6] border-[#253551]/20 text-black rounded-lg p-0 overflow-hidden">
-                                                <DialogHeader className="border-b border-black/10 p-6 pb-4 bg-white relative">
-                                                    <div className="flex items-center justify-between">
-                                                        <DialogTitle className="text-xl font-medium text-[#111827] flex items-center gap-2">
-                                                            <span className="text-[#6B7280]">Campaigns</span>
-                                                            <span className="text-[#D1D5DB] font-light">/</span>
-                                                            <span className="flex items-center gap-2">🎉 {camp.subject}</span>
-                                                        </DialogTitle>
-                                                        <div className="text-xs text-[#6B7280]">Sent on Thursday 15 January at 12:05</div>
-                                                    </div>
-                                                </DialogHeader>
-
-                                                <div className="px-8 py-6 max-h-[70vh] overflow-y-auto">
-                                                    <div className="flex gap-6 border-b border-black/10 mb-8 font-medium text-sm">
-                                                        <div className="pb-3 border-b-2 border-blue-500 text-[#111827]">Statistics</div>
-                                                        <div className="pb-3 text-[#6B7280]">Recipients</div>
-                                                    </div>
-
-                                                    <div className="grid grid-cols-3 gap-12 mb-10">
-                                                        {/* Recipients */}
-                                                        <div>
-                                                            <div className="flex items-center justify-between text-xs font-semibold italic text-[#6B7280] mb-3">Recipients <HelpCircle className="w-3 h-3" /></div>
-                                                            <div className="text-4xl font-semibold mb-3 tracking-tight text-[#111827]">{camp.analytics?.recipients}</div>
-                                                            <div className="text-[11px] text-[#6B7280] flex items-center gap-2 font-medium">
-                                                                <span className="bg-[#E5E7EB]/50 px-2 py-0.5 rounded text-[#374151]">{camp.analytics?.deliveredPercent}%</span> delivered
-                                                            </div>
+                                <div className="flex items-center gap-2">
+                                    {camp.status === 'sent' && (
+                                        <Dialog>
+                                            <DialogTrigger asChild>
+                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-[#253551]/50 hover:text-[#253551] hover:bg-[#253551]/10 rounded-full" onClick={() => setSelectedAnalytics(camp)}>
+                                                    <BarChart3 className="h-4 w-4" />
+                                                </Button>
+                                            </DialogTrigger>
+                                            {selectedAnalytics?.month === camp.month && (
+                                                <DialogContent className="sm:max-w-[800px] bg-[#f2f4f6] border-[#253551]/20 text-black rounded-lg p-0 overflow-hidden">
+                                                    <DialogHeader className="border-b border-black/10 p-6 pb-4 bg-white relative">
+                                                        <div className="flex items-center justify-between">
+                                                            <DialogTitle className="text-xl font-medium text-[#111827] flex items-center gap-2">
+                                                                <span className="text-[#6B7280]">Campaigns</span>
+                                                                <span className="text-[#D1D5DB] font-light">/</span>
+                                                                <span className="flex items-center gap-2">🎉 {camp.subject}</span>
+                                                            </DialogTitle>
+                                                            <div className="text-xs text-[#6B7280]">Sent on Thursday 15 January at 12:05</div>
                                                         </div>
-                                                        {/* Orders */}
-                                                        <div>
-                                                            <div className="flex items-center justify-between text-xs font-semibold italic text-[#6B7280] mb-3">Orders <HelpCircle className="w-3 h-3" /></div>
-                                                            <div className="text-4xl font-semibold mb-3 tracking-tight text-[#111827]">{camp.analytics?.orders}</div>
-                                                            <div className="text-[11px] text-[#6B7280] flex items-center gap-2 font-medium">
-                                                                <span className="bg-[#E5E7EB]/50 px-2 py-0.5 rounded text-[#374151]">€{camp.analytics?.revenue}</span> revenue
-                                                            </div>
-                                                        </div>
-                                                        {/* Unsubscribes */}
-                                                        <div>
-                                                            <div className="flex items-center justify-between text-xs font-semibold italic text-[#6B7280] mb-3">Unsubscribes <HelpCircle className="w-3 h-3" /></div>
-                                                            <div className="text-4xl font-semibold mb-3 tracking-tight text-[#111827]">{camp.analytics?.unsubscribes}</div>
-                                                            <div className="text-[11px] text-[#6B7280] flex items-center gap-2 font-medium">
-                                                                <span className="bg-[#E5E7EB]/50 px-2 py-0.5 rounded text-[#374151]">{camp.analytics?.unsubPercent} %</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
+                                                    </DialogHeader>
 
-                                                    <div className="grid grid-cols-3 gap-12">
-                                                        {/* Opens & Visits */}
-                                                        <div className="flex flex-col gap-10">
+                                                    <div className="px-8 py-6 max-h-[70vh] overflow-y-auto">
+                                                        <div className="flex gap-6 border-b border-black/10 mb-8 font-medium text-sm">
+                                                            <div className="pb-3 border-b-2 border-blue-500 text-[#111827]">Statistics</div>
+                                                            <div className="pb-3 text-[#6B7280]">Recipients</div>
+                                                        </div>
+
+                                                        <div className="grid grid-cols-3 gap-12 mb-10">
+                                                            {/* Recipients */}
                                                             <div>
-                                                                <div className="flex items-center justify-between text-xs font-semibold italic text-[#6B7280] mb-3">Opens <HelpCircle className="w-3 h-3" /></div>
-                                                                <div className="text-4xl font-semibold mb-3 tracking-tight text-[#111827]">{camp.analytics?.opens}</div>
+                                                                <div className="flex items-center justify-between text-xs font-semibold italic text-[#6B7280] mb-3">Recipients <HelpCircle className="w-3 h-3" /></div>
+                                                                <div className="text-4xl font-semibold mb-3 tracking-tight text-[#111827]">{camp.analytics?.recipients}</div>
                                                                 <div className="text-[11px] text-[#6B7280] flex items-center gap-2 font-medium">
-                                                                    <span className="bg-[#E5E7EB]/50 px-2 py-0.5 rounded text-[#374151]">{camp.analytics?.openPercent} %</span>
+                                                                    <span className="bg-[#E5E7EB]/50 px-2 py-0.5 rounded text-[#374151]">{camp.analytics?.deliveredPercent}%</span> delivered
                                                                 </div>
                                                             </div>
+                                                            {/* Orders */}
                                                             <div>
-                                                                <div className="flex items-center justify-between text-xs font-semibold italic text-[#6B7280] mb-3">Visits <HelpCircle className="w-3 h-3" /></div>
-                                                                <div className="text-4xl font-semibold mb-3 tracking-tight text-[#111827]">{camp.analytics?.visits}</div>
+                                                                <div className="flex items-center justify-between text-xs font-semibold italic text-[#6B7280] mb-3">Orders <HelpCircle className="w-3 h-3" /></div>
+                                                                <div className="text-4xl font-semibold mb-3 tracking-tight text-[#111827]">{camp.analytics?.orders}</div>
                                                                 <div className="text-[11px] text-[#6B7280] flex items-center gap-2 font-medium">
-                                                                    <span className="bg-[#E5E7EB]/50 px-2 py-0.5 rounded text-[#374151]">{camp.analytics?.visitsPercent} %</span>
+                                                                    <span className="bg-[#E5E7EB]/50 px-2 py-0.5 rounded text-[#374151]">€{camp.analytics?.revenue}</span> revenue
+                                                                </div>
+                                                            </div>
+                                                            {/* Unsubscribes */}
+                                                            <div>
+                                                                <div className="flex items-center justify-between text-xs font-semibold italic text-[#6B7280] mb-3">Unsubscribes <HelpCircle className="w-3 h-3" /></div>
+                                                                <div className="text-4xl font-semibold mb-3 tracking-tight text-[#111827]">{camp.analytics?.unsubscribes}</div>
+                                                                <div className="text-[11px] text-[#6B7280] flex items-center gap-2 font-medium">
+                                                                    <span className="bg-[#E5E7EB]/50 px-2 py-0.5 rounded text-[#374151]">{camp.analytics?.unsubPercent} %</span>
                                                                 </div>
                                                             </div>
                                                         </div>
 
-                                                        {/* Chart */}
-                                                        <div className="col-span-2">
-                                                            <div className="flex items-center justify-between text-xs font-semibold italic text-[#6B7280] mb-6">Opens in first 20 hours <HelpCircle className="w-3 h-3" /></div>
-                                                            <div className="h-[220px] flex items-end gap-[6px] border-b border-l border-[#D1D5DB] pb-1 pl-2 relative ml-6">
-                                                                {/* Y axis labels */}
-                                                                <div className="absolute -left-7 bottom-0 h-full flex flex-col justify-between text-[10px] text-[#9CA3AF] py-1">
-                                                                    <span>800</span><span>600</span><span>400</span><span>200</span><span className="opacity-0">0</span>
-                                                                </div>
-                                                                {/* Null baseline */}
-                                                                <div className="absolute -left-4 -bottom-[6px] text-[10px] text-[#9CA3AF]">0</div>
-
-                                                                {camp.analytics?.hourlyOpens.map((count: number, i: number) => (
-                                                                    <div key={i} className="flex-1 bg-[#1877F2] hover:bg-[#1877F2]/80 transition-colors flex flex-col justify-end group relative rounded-t-[1px]" style={{ height: `${Math.max(1, (count / 800) * 100)}%` }}>
-                                                                        <div className="absolute -bottom-5 w-full text-center text-[9px] text-[#9CA3AF]">{i}</div>
+                                                        <div className="grid grid-cols-3 gap-12">
+                                                            {/* Opens & Visits */}
+                                                            <div className="flex flex-col gap-10">
+                                                                <div>
+                                                                    <div className="flex items-center justify-between text-xs font-semibold italic text-[#6B7280] mb-3">Opens <HelpCircle className="w-3 h-3" /></div>
+                                                                    <div className="text-4xl font-semibold mb-3 tracking-tight text-[#111827]">{camp.analytics?.opens}</div>
+                                                                    <div className="text-[11px] text-[#6B7280] flex items-center gap-2 font-medium">
+                                                                        <span className="bg-[#E5E7EB]/50 px-2 py-0.5 rounded text-[#374151]">{camp.analytics?.openPercent} %</span>
                                                                     </div>
-                                                                ))}
+                                                                </div>
+                                                                <div>
+                                                                    <div className="flex items-center justify-between text-xs font-semibold italic text-[#6B7280] mb-3">Visits <HelpCircle className="w-3 h-3" /></div>
+                                                                    <div className="text-4xl font-semibold mb-3 tracking-tight text-[#111827]">{camp.analytics?.visits}</div>
+                                                                    <div className="text-[11px] text-[#6B7280] flex items-center gap-2 font-medium">
+                                                                        <span className="bg-[#E5E7EB]/50 px-2 py-0.5 rounded text-[#374151]">{camp.analytics?.visitsPercent} %</span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Chart */}
+                                                            <div className="col-span-2">
+                                                                <div className="flex items-center justify-between text-xs font-semibold italic text-[#6B7280] mb-6">Opens in first 20 hours <HelpCircle className="w-3 h-3" /></div>
+                                                                <div className="h-[220px] flex items-end gap-[6px] border-b border-l border-[#D1D5DB] pb-1 pl-2 relative ml-6">
+                                                                    {/* Y axis labels */}
+                                                                    <div className="absolute -left-7 bottom-0 h-full flex flex-col justify-between text-[10px] text-[#9CA3AF] py-1">
+                                                                        <span>800</span><span>600</span><span>400</span><span>200</span><span className="opacity-0">0</span>
+                                                                    </div>
+                                                                    {/* Null baseline */}
+                                                                    <div className="absolute -left-4 -bottom-[6px] text-[10px] text-[#9CA3AF]">0</div>
+
+                                                                    {camp.analytics?.hourlyOpens.map((count: number, i: number) => (
+                                                                        <div key={i} className="flex-1 bg-[#1877F2] hover:bg-[#1877F2]/80 transition-colors flex flex-col justify-end group relative rounded-t-[1px]" style={{ height: `${Math.max(1, (count / 800) * 100)}%` }}>
+                                                                            <div className="absolute -bottom-5 w-full text-center text-[9px] text-[#9CA3AF]">{i}</div>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                            </DialogContent>
-                                        )}
-                                    </Dialog>
-                                )}
-                                {camp.status === 'draft' && (
-                                    <Button
-                                        size="sm"
-                                        onClick={() => handleApproveCampaign(camp.month)}
-                                        disabled={approvingCampaignId === camp.month}
-                                        className="h-8 text-xs bg-[#253551] text-white hover:bg-[#253551]/90 shadow-sm transition-all"
-                                    >
-                                        {approvingCampaignId === camp.month ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Approve'}
+                                                </DialogContent>
+                                            )}
+                                        </Dialog>
+                                    )}
+                                    {camp.status === 'draft' && (
+                                        <Button
+                                            size="sm"
+                                            onClick={() => handleApproveCampaign(camp.month)}
+                                            disabled={approvingCampaignId === camp.month}
+                                            className="h-8 text-xs bg-[#253551] text-white hover:bg-[#253551]/90 shadow-sm transition-all"
+                                        >
+                                            {approvingCampaignId === camp.month ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Approve'}
+                                        </Button>
+                                    )}
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-[#253551]/50 hover:text-[#253551] hover:bg-[#253551]/10 rounded-full" onClick={() => setSelectedCampaign(camp)}>
+                                        <Edit3 className="h-4 w-4" />
                                     </Button>
-                                )}
-                                <Button variant="ghost" size="icon" className="h-8 w-8 text-[#253551]/50 hover:text-[#253551] hover:bg-[#253551]/10 rounded-full" onClick={() => setSelectedCampaign(camp)}>
-                                    <Edit3 className="h-4 w-4" />
-                                </Button>
-                            </div>
-                        </CardFooter>
-                    </Card>
+                                </div>
+                            </CardFooter>
+                        </Card>
+                    </motion.div>
                 ))}
-            </div>
+            </motion.div>
         </div>
     );
 }
