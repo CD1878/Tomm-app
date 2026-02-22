@@ -16,6 +16,7 @@ export default function SettingsPage() {
     const [scrapeError, setScrapeError] = useState("");
     const [websiteUrl, setWebsiteUrl] = useState("https://www.cafehetpaardje.nl/");
     const [instagramUrl, setInstagramUrl] = useState("https://www.instagram.com/paardcafe/?hl=nl");
+    const [reservationUrl, setReservationUrl] = useState("");
     const [instructions, setInstructions] = useState("");
     const [defaultLanguage, setDefaultLanguage] = useState("NL");
     const [newEmail, setNewEmail] = useState("");
@@ -36,6 +37,11 @@ export default function SettingsPage() {
         const savedLanguage = localStorage.getItem('tomm_default_language');
         if (savedLanguage) {
             setDefaultLanguage(savedLanguage);
+        }
+
+        const savedReservationUrl = localStorage.getItem('tomm_reservation_url');
+        if (savedReservationUrl) {
+            setReservationUrl(savedReservationUrl);
         }
 
         const savedSubs = localStorage.getItem('tomm_demo_subscribers');
@@ -150,6 +156,7 @@ export default function SettingsPage() {
         localStorage.setItem('tomm_global_instructions', instructions);
         localStorage.setItem('tomm_default_language', defaultLanguage);
         localStorage.setItem('tomm_website_url', websiteUrl);
+        localStorage.setItem('tomm_reservation_url', reservationUrl);
 
         try {
             const response = await fetch('/api/scrape', {
@@ -167,6 +174,7 @@ export default function SettingsPage() {
             if (data.success && data.markdown) {
                 localStorage.setItem('tomm_business_context', data.markdown);
                 if (data.reservationUrl) {
+                    setReservationUrl(data.reservationUrl);
                     localStorage.setItem('tomm_reservation_url', data.reservationUrl);
                 }
                 setScrapeSuccess(true);
@@ -235,6 +243,21 @@ export default function SettingsPage() {
                                         id="instagram"
                                         value={instagramUrl}
                                         onChange={(e) => setInstagramUrl(e.target.value)}
+                                        className="pl-10 bg-white border-[#253551]/20 focus-visible:ring-1 focus-visible:ring-[#253551] text-black placeholder:text-black/40 h-11"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="reservationUrl" className="text-[#253551] font-medium">Reservation Link</Label>
+                                <p className="text-xs text-black/50 mb-2">The link where customers should be sent when they click "Reserveer nu" in your emails.</p>
+                                <div className="relative group">
+                                    <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-black/40 group-focus-within:text-[#253551] transition-colors" />
+                                    <Input
+                                        id="reservationUrl"
+                                        value={reservationUrl}
+                                        onChange={(e) => setReservationUrl(e.target.value)}
+                                        placeholder="Bijv. https://reserveren.tebi.com/123"
                                         className="pl-10 bg-white border-[#253551]/20 focus-visible:ring-1 focus-visible:ring-[#253551] text-black placeholder:text-black/40 h-11"
                                     />
                                 </div>
