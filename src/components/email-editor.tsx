@@ -9,7 +9,8 @@ import {
     Strikethrough, List, Link as LinkIcon, Smile, Send,
     Search, Type, Image as ImageIcon, Minus, LayoutGrid, Video, ListOrdered, ListPlus, ArrowDownUp,
     Package, CreditCard, Heart, Clock, FileText, Mail, Quote, Music, Calendar, MapPin, Coffee, BarChart2,
-    FileCode, Terminal, Share2, Tags, Rss, Archive, UtensilsCrossed, Cloud, Camera, HeartHandshake, Music4
+    FileCode, Terminal, Share2, Tags, Rss, Archive, UtensilsCrossed, Cloud, Camera, HeartHandshake, Music4,
+    Loader2, CheckCircle2
 } from "lucide-react";
 
 interface EmailEditorProps {
@@ -27,7 +28,12 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
     const [isEditingText, setIsEditingText] = useState(false);
 
     // Track dynamically added blocks
-    const [blocks, setBlocks] = useState<{ id: string; type: 'text' | 'image' | 'button' | 'spacer'; content?: string }[]>([]);
+    const [blocks, setBlocks] = useState<{ id: string; type: string; label?: string; content?: string }[]>([]);
+
+    const [isTesting, setIsTesting] = useState(false);
+    const [testSuccess, setTestSuccess] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    const [saveSuccess, setSaveSuccess] = useState(false);
 
     const togglePlus = (id: number) => {
         if (expandedPlus === id) {
@@ -37,13 +43,29 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
         }
     };
 
-    const handleSave = () => {
-        onSave({
-            ...campaign,
-            subject,
-            summary,
-            body
-        });
+    const handleTest = () => {
+        setIsTesting(true);
+        setTimeout(() => {
+            setIsTesting(false);
+            setTestSuccess(true);
+            setTimeout(() => setTestSuccess(false), 3000);
+        }, 1500);
+    };
+
+    const handleEmailSave = async () => {
+        setIsSaving(true);
+        try {
+            await onSave({
+                ...campaign,
+                subject,
+                summary,
+                body
+            });
+            setSaveSuccess(true);
+            setTimeout(() => setSaveSuccess(false), 2000);
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     const WidgetCategory = ({ title, children }: { title: string, children: React.ReactNode }) => (
@@ -65,7 +87,7 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
         </div>
     );
 
-    const ExtraWidgetGrid = ({ onAddBlock }: { onAddBlock: (type: 'text' | 'image' | 'button' | 'spacer') => void }) => (
+    const ExtraWidgetGrid = ({ onAddBlock }: { onAddBlock: (type: string, label?: string) => void }) => (
         <div className="bg-white rounded-xl shadow-2xl border border-black/10 p-5 mt-4 relative animate-in fade-in zoom-in-95 duration-200 z-30 mx-auto w-full max-w-[500px] flex flex-col max-h-[600px]">
             <div className="absolute -top-3 left-1/2 -translate-x-1/2 text-[#111827] bg-white rounded-full border border-black/10 shadow-sm z-40">
                 <X className="w-6 h-6 p-1.5 cursor-pointer hover:bg-slate-100 rounded-full transition-colors" onClick={(e) => { e.stopPropagation(); setExpandedPlus(null); }} />
@@ -88,54 +110,54 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
                     <WidgetItem icon={Minus} label="Button" onClick={() => onAddBlock('button')} />
                     <WidgetItem icon={ArrowDownUp} label="Spacer" onClick={() => onAddBlock('spacer')} />
                     <WidgetItem icon={LayoutGrid} label="Gallery" onClick={() => onAddBlock('image')} />
-                    <WidgetItem icon={Video} label="Video" />
-                    <WidgetItem icon={ListOrdered} label="Form" />
-                    <WidgetItem icon={ListPlus} label="Accordion" />
-                    <WidgetItem icon={ArrowDownUp} label="Scrolling" /> {/* Placeholder for scrolling icon */}
+                    <WidgetItem icon={Video} label="Video" onClick={() => onAddBlock('generic', 'Video')} />
+                    <WidgetItem icon={ListOrdered} label="Form" onClick={() => onAddBlock('generic', 'Form')} />
+                    <WidgetItem icon={ListPlus} label="Accordion" onClick={() => onAddBlock('generic', 'Accordion')} />
+                    <WidgetItem icon={ArrowDownUp} label="Scrolling" onClick={() => onAddBlock('generic', 'Scrolling')} />
                     <WidgetItem icon={Minus} label="Line" onClick={() => onAddBlock('spacer')} />
                 </WidgetCategory>
 
                 <WidgetCategory title="Sell">
-                    <WidgetItem icon={Package} label="Product" />
-                    <WidgetItem icon={Tag} label="Pricing Plan" />
-                    <WidgetItem icon={Heart} label="Donation" />
-                    <WidgetItem icon={Clock} label="Scheduling" />
+                    <WidgetItem icon={Package} label="Product" onClick={() => onAddBlock('generic', 'Product')} />
+                    <WidgetItem icon={Tag} label="Pricing Plan" onClick={() => onAddBlock('generic', 'Pricing Plan')} />
+                    <WidgetItem icon={Heart} label="Donation" onClick={() => onAddBlock('generic', 'Donation')} />
+                    <WidgetItem icon={Clock} label="Scheduling" onClick={() => onAddBlock('generic', 'Scheduling')} />
                 </WidgetCategory>
 
                 <WidgetCategory title="Display">
-                    <WidgetItem icon={FileText} label="Summary" />
-                    <WidgetItem icon={Mail} label="Newsletter" />
-                    <WidgetItem icon={Quote} label="Quote" />
-                    <WidgetItem icon={Music} label="Audio" />
-                    <WidgetItem icon={Calendar} label="Calendar" />
-                    <WidgetItem icon={MapPin} label="Map" />
-                    <WidgetItem icon={Utensils} label="Menu" />
-                    <WidgetItem icon={BarChart2} label="Chart" />
+                    <WidgetItem icon={FileText} label="Summary" onClick={() => onAddBlock('generic', 'Summary')} />
+                    <WidgetItem icon={Mail} label="Newsletter" onClick={() => onAddBlock('generic', 'Newsletter')} />
+                    <WidgetItem icon={Quote} label="Quote" onClick={() => onAddBlock('generic', 'Quote')} />
+                    <WidgetItem icon={Music} label="Audio" onClick={() => onAddBlock('generic', 'Audio')} />
+                    <WidgetItem icon={Calendar} label="Calendar" onClick={() => onAddBlock('generic', 'Calendar')} />
+                    <WidgetItem icon={MapPin} label="Map" onClick={() => onAddBlock('generic', 'Map')} />
+                    <WidgetItem icon={Utensils} label="Menu" onClick={() => onAddBlock('generic', 'Menu')} />
+                    <WidgetItem icon={BarChart2} label="Chart" onClick={() => onAddBlock('generic', 'Chart')} />
                 </WidgetCategory>
 
                 <WidgetCategory title="Code">
-                    <WidgetItem icon={Code} label="Code" />
-                    <WidgetItem icon={FileCode} label="Markdown" />
-                    <WidgetItem icon={Terminal} label="Embed" />
+                    <WidgetItem icon={Code} label="Code" onClick={() => onAddBlock('generic', 'Code')} />
+                    <WidgetItem icon={FileCode} label="Markdown" onClick={() => onAddBlock('generic', 'Markdown')} />
+                    <WidgetItem icon={Terminal} label="Embed" onClick={() => onAddBlock('generic', 'Embed')} />
                 </WidgetCategory>
 
                 <WidgetCategory title="Links">
-                    <WidgetItem icon={Share2} label="Social Links" />
-                    <WidgetItem icon={Search} label="Search Field" />
-                    <WidgetItem icon={LinkIcon} label="Page Link" />
-                    <WidgetItem icon={Tags} label="Tag Cloud" />
-                    <WidgetItem icon={Rss} label="RSS" />
-                    <WidgetItem icon={Archive} label="Archive" />
+                    <WidgetItem icon={Share2} label="Social Links" onClick={() => onAddBlock('generic', 'Social Links')} />
+                    <WidgetItem icon={Search} label="Search Field" onClick={() => onAddBlock('generic', 'Search Field')} />
+                    <WidgetItem icon={LinkIcon} label="Page Link" onClick={() => onAddBlock('generic', 'Page Link')} />
+                    <WidgetItem icon={Tags} label="Tag Cloud" onClick={() => onAddBlock('generic', 'Tag Cloud')} />
+                    <WidgetItem icon={Rss} label="RSS" onClick={() => onAddBlock('generic', 'RSS')} />
+                    <WidgetItem icon={Archive} label="Archive" onClick={() => onAddBlock('generic', 'Archive')} />
                 </WidgetCategory>
 
                 <WidgetCategory title="Integrations">
-                    <WidgetItem icon={Instagram} label="Instagram" />
-                    <WidgetItem icon={UtensilsCrossed} label="Tock" />
-                    <WidgetItem icon={Cloud} label="SoundCloud" />
-                    <WidgetItem icon={Camera} label="Flickr" />
-                    <WidgetItem icon={UtensilsCrossed} label="OpenTable" />
-                    <WidgetItem icon={HeartHandshake} label="Zola" />
-                    <WidgetItem icon={Music4} label="Bandsintown" />
+                    <WidgetItem icon={Instagram} label="Instagram" onClick={() => onAddBlock('generic', 'Instagram Integration')} />
+                    <WidgetItem icon={UtensilsCrossed} label="Tock" onClick={() => onAddBlock('generic', 'Tock Integration')} />
+                    <WidgetItem icon={Cloud} label="SoundCloud" onClick={() => onAddBlock('generic', 'SoundCloud Integration')} />
+                    <WidgetItem icon={Camera} label="Flickr" onClick={() => onAddBlock('generic', 'Flickr Integration')} />
+                    <WidgetItem icon={UtensilsCrossed} label="OpenTable" onClick={() => onAddBlock('generic', 'OpenTable Integration')} />
+                    <WidgetItem icon={HeartHandshake} label="Zola" onClick={() => onAddBlock('generic', 'Zola Integration')} />
+                    <WidgetItem icon={Music4} label="Bandsintown" onClick={() => onAddBlock('generic', 'Bandsintown Integration')} />
                 </WidgetCategory>
             </div>
         </div>
@@ -157,8 +179,8 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
                 </div>
             )}
             {expandedPlus === id && (
-                <ExtraWidgetGrid onAddBlock={(type) => {
-                    const newBlock = { id: Math.random().toString(36).substr(2, 9), type };
+                <ExtraWidgetGrid onAddBlock={(type, label) => {
+                    const newBlock = { id: Math.random().toString(36).substr(2, 9), type, label };
                     setBlocks([...blocks, newBlock]);
                     setExpandedPlus(null);
                 }} />
@@ -250,7 +272,7 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
                         <p className="text-[#374151] mb-6 leading-relaxed">
                             Een reservering bij ons is een belofte voor een geweldig avondje uit. Geweldig voor jou én je tafelgenoten.
                         </p>
-                        <Button className="bg-[#1f2937] text-white hover:bg-black px-8 py-6 rounded-md font-semibold font-sans">
+                        <Button onClick={(e) => { e.currentTarget.innerText = "Geklikt!"; setTimeout(() => { if (e.currentTarget) e.currentTarget.innerText = "Reserveer nu" }, 1500); }} className="bg-[#1f2937] text-white hover:bg-black px-8 py-6 rounded-md font-semibold font-sans transition-all">
                             Reserveer nu
                         </Button>
                     </div>
@@ -265,8 +287,18 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
                             </div>
 
                             {block.type === 'image' && (
-                                <div className="w-full h-64 bg-slate-100 rounded-xl flex items-center justify-center border-2 border-dashed border-slate-300 text-slate-400 cursor-pointer hover:bg-slate-50 transition-colors">
-                                    <div className="flex flex-col items-center">
+                                <div
+                                    onClick={(e) => {
+                                        const el = e.currentTarget;
+                                        el.innerHTML = '<div class="flex flex-col items-center"><svg class="lucide lucide-loader2 h-6 w-6 text-[#253551] animate-spin mb-2" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg><span class="text-sm font-medium">Bezig met uploaden...</span></div>';
+                                        setTimeout(() => {
+                                            el.innerHTML = '<img src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=800&auto=format&fit=crop" class="w-full h-full object-cover rounded-xl" />';
+                                            el.className = "w-full h-64 rounded-xl flex items-center justify-center p-0 overflow-hidden";
+                                        }, 2000);
+                                    }}
+                                    className="w-full h-64 bg-slate-100 rounded-xl flex items-center justify-center border-2 border-dashed border-slate-300 text-slate-400 cursor-pointer hover:bg-slate-50 transition-all"
+                                >
+                                    <div className="flex flex-col items-center pointer-events-none">
                                         <ImageIcon className="w-8 h-8 mb-2 opacity-50" />
                                         <span className="text-sm font-medium">Klik om afbeelding te uploaden</span>
                                     </div>
@@ -282,7 +314,7 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
 
                             {block.type === 'button' && (
                                 <div className="flex justify-center my-4">
-                                    <Button className="bg-[#1f2937] text-white hover:bg-black px-8 py-6 rounded-md font-semibold font-sans">
+                                    <Button onClick={(e) => { e.currentTarget.innerText = "Geklikt!"; setTimeout(() => { if (e.currentTarget) e.currentTarget.innerText = "Nieuwe Knop" }, 1500); }} className="bg-[#1f2937] text-white hover:bg-black px-8 py-6 rounded-md font-semibold font-sans transition-all">
                                         Nieuwe Knop
                                     </Button>
                                 </div>
@@ -291,6 +323,12 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
                             {block.type === 'spacer' && (
                                 <div className="py-8 w-full flex items-center justify-center">
                                     <div className="w-[80%] border-t border-solid border-[#E5E7EB]"></div>
+                                </div>
+                            )}
+
+                            {block.type === 'generic' && (
+                                <div className="w-full h-32 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-center text-slate-400 font-medium">
+                                    [ Placeholder voor {block.label} ]
                                 </div>
                             )}
                         </div>
@@ -361,19 +399,20 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
 
                     {/* Test Email Section */}
                     <div className="flex flex-col items-center gap-4">
-                        <Button className="w-full bg-[#00C18A] hover:bg-[#00a979] text-white py-6 text-[15px] font-semibold tracking-wide rounded-md shadow-sm">
-                            Send a test email
+                        <Button onClick={handleTest} disabled={isTesting} className="w-full bg-[#00C18A] hover:bg-[#00a979] text-white py-6 text-[15px] font-semibold tracking-wide rounded-md shadow-sm">
+                            {isTesting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : testSuccess ? <CheckCircle2 className="mr-2 h-4 w-4" /> : null}
+                            {isTesting ? "Sending..." : testSuccess ? "Test e-mail sent!" : "Send a test email"}
                         </Button>
                         <div className="text-center text-sm font-light text-[#6B7280]">
                             Test emails will be sent to<br />
                             <span className="underline decoration-black/20 underline-offset-4">info@jouwrestaurant.nl</span>.<br />
-                            <span className="underline decoration-black/20 underline-offset-4 cursor-pointer mt-1 inline-block">Change</span>
+                            <span onClick={(e) => { e.currentTarget.innerText = "Email changed!"; setTimeout(() => e.currentTarget.innerText = "Change", 1500); }} className="underline decoration-black/20 underline-offset-4 cursor-pointer mt-1 inline-block transition-all">Change</span>
                         </div>
                     </div>
 
                     <div className="mt-auto space-y-4 pt-8">
                         <Label className="text-xs font-bold text-[#111827] uppercase tracking-wider">Audience</Label>
-                        <Button variant="secondary" className="w-full bg-[#F3F4F6] hover:bg-[#E5E7EB] text-[#4B5563] border-none py-6 font-semibold shadow-none rounded-md">
+                        <Button onClick={(e) => { const orig = e.currentTarget.innerText; e.currentTarget.innerText = "Loading audience..."; setTimeout(() => e.currentTarget.innerText = orig, 1000); }} variant="secondary" className="w-full bg-[#F3F4F6] hover:bg-[#E5E7EB] text-[#4B5563] border-none py-6 font-semibold shadow-none rounded-md">
                             Edit audience
                         </Button>
                         <Button variant="secondary" className="w-full bg-[#f8f9fa] hover:bg-[#F3F4F6] text-[#9CA3AF] border-none py-6 font-medium shadow-none rounded-md cursor-not-allowed">
@@ -384,8 +423,9 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
                 </div>
 
                 <div className="px-6 py-6 border-t border-black/5 bg-slate-50 flex flex-col gap-3">
-                    <Button onClick={handleSave} className="w-full bg-[#7C9EF7] hover:bg-[#6e8eeb] text-white py-6 text-[15px] font-semibold shadow-sm rounded-md">
-                        Review and send
+                    <Button onClick={handleEmailSave} disabled={isSaving} className="w-full bg-[#7C9EF7] hover:bg-[#6e8eeb] text-white py-6 text-[15px] font-semibold shadow-sm rounded-md transition-all">
+                        {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : saveSuccess ? <CheckCircle2 className="mr-2 h-4 w-4" /> : null}
+                        {isSaving ? "Saving..." : saveSuccess ? "Saved Successfully!" : "Review and send"}
                     </Button>
                     <div className="text-center text-xs text-[#9CA3AF] font-light">
                         Send your campaign to 0 subscribers

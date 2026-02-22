@@ -17,6 +17,11 @@ export default function SettingsPage() {
     const [addSuccess, setAddSuccess] = useState(false);
     const [subscribers, setSubscribers] = useState<{ email: string, source: string, date: string }[]>([]);
 
+    // UI Interaction states
+    const [uploadingCSV, setUploadingCSV] = useState(false);
+    const [uploadedCSV, setUploadedCSV] = useState(false);
+    const [connectedAPIs, setConnectedAPIs] = useState<Record<string, boolean>>({});
+
     // Load saved instructions on mount
     useEffect(() => {
         const savedInstructions = localStorage.getItem('tomm_global_instructions');
@@ -185,11 +190,25 @@ export default function SettingsPage() {
                             </div>
                         </CardHeader>
                         <CardContent>
-                            <div className="border-2 border-dashed border-[#253551]/20 rounded-xl p-12 text-center hover:bg-[#253551]/5 transition-colors cursor-pointer group bg-slate-50/50">
+                            <div
+                                onClick={() => {
+                                    setUploadingCSV(true);
+                                    setTimeout(() => {
+                                        setUploadingCSV(false);
+                                        setUploadedCSV(true);
+                                        setTimeout(() => setUploadedCSV(false), 3000);
+                                    }, 1500);
+                                }}
+                                className="border-2 border-dashed border-[#253551]/20 rounded-xl p-12 text-center hover:bg-[#253551]/5 transition-colors cursor-pointer group bg-slate-50/50"
+                            >
                                 <div className="h-12 w-12 bg-white shadow-sm rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-                                    <Upload className="h-6 w-6 text-[#253551] group-hover:text-[#253551]/80 transition-colors" />
+                                    {uploadingCSV ? <Loader2 className="h-6 w-6 text-[#253551] animate-spin" /> :
+                                        uploadedCSV ? <CheckCircle2 className="h-6 w-6 text-green-500" /> :
+                                            <Upload className="h-6 w-6 text-[#253551] group-hover:text-[#253551]/80 transition-colors" />}
                                 </div>
-                                <h3 className="text-lg font-medium text-[#253551] mb-1">Click to upload CSV</h3>
+                                <h3 className="text-lg font-medium text-[#253551] mb-1">
+                                    {uploadingCSV ? "Uploading..." : uploadedCSV ? "Successfully uploaded!" : "Click to upload CSV"}
+                                </h3>
                                 <p className="text-sm text-black/50">or drag and drop your exported guest list here</p>
                             </div>
 
@@ -198,9 +217,16 @@ export default function SettingsPage() {
                             </div>
 
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8">
-                                <Button variant="outline" className="border-[#253551]/20 bg-white hover:bg-[#253551]/5 h-14 text-[#253551] font-medium shadow-sm">Tebi</Button>
-                                <Button variant="outline" className="border-[#253551]/20 bg-white hover:bg-[#253551]/5 h-14 text-[#253551] font-medium shadow-sm">Zenchef</Button>
-                                <Button variant="outline" className="border-[#253551]/20 bg-white hover:bg-[#253551]/5 h-14 text-[#253551] font-medium shadow-sm">Guestplan</Button>
+                                {['Tebi', 'Zenchef', 'Guestplan'].map(provider => (
+                                    <Button
+                                        key={provider}
+                                        onClick={() => setConnectedAPIs(prev => ({ ...prev, [provider]: !prev[provider] }))}
+                                        variant="outline"
+                                        className={`border-[#253551]/20 h-14 font-medium shadow-sm transition-all ${connectedAPIs[provider] ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100 hover:text-green-800' : 'bg-white text-[#253551] hover:bg-[#253551]/5'}`}
+                                    >
+                                        {connectedAPIs[provider] ? <><CheckCircle2 className="w-4 h-4 mr-2" /> Connected</> : provider}
+                                    </Button>
+                                ))}
                             </div>
 
                             <div className="mt-8 pt-8 border-t border-[#253551]/10">
