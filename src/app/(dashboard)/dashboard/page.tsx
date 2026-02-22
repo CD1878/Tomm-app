@@ -59,63 +59,63 @@ const mockCampaigns = [
     },
     {
         month: 3, name: "March", subject: "Lente in je Bol! 🌷",
-        summary: "First sunny days on the Gerard Douplein terrace. Get ready!",
+        summary: "De eerste zonnige dagen op het Gerard Douplein terras. Maak je klaar!",
         body: "Hi allemaal,\n\nVoelen jullie het ook? De dagen worden langer en de zon laat zich weer vaker zien op het Gerard Douplein!\n\nOns terras wordt langzaam weer de warmste plek van De Pijp. Hoog tijd om die winterjas thuis te laten en te genieten van de eerste échte zonnestralen met een ijskoud biertje in je hand.\n\nTot snel op het terras!\n\nLiefs,\nTeam Het Paardje",
         imageUrl: realImages[2],
         status: "scheduled", date: "Mar 5th"
     },
     {
         month: 4, name: "April", subject: "Paasbrunch bij Het Paardje 🐰",
-        summary: "Family brunch specials and extended opening hours for the Easter weekend.",
+        summary: "Familie brunch specials en verruimde openingstijden voor het Paasweekend.",
         body: "Vrolijk Pasen!\n\nHebben jullie al plannen voor het paasweekend? Bij Het Paardje pakken we dit jaar lekker uit met een uitgebreide Paasbrunch.\n\nVerwacht verse eitjes, huisgemaakte baksels en natuurlijk de gezelligste sfeer van Amsterdam. Perfect voor de hele familie.\n\nVergeet niet tijdig een tafeltje veilig te stellen via onze website.\n\nGroetjes,\nTeam Het Paardje",
         imageUrl: realImages[3],
         status: "scheduled", date: "Apr 5th"
     },
     {
         month: 5, name: "May", subject: "Zon, Bier & Bitterballen ☀️",
-        summary: "Official terrace season kick-off party announcement. Cold beers waiting.",
+        summary: "De officiële aftrap van het terrasseizoen. Koude biertjes staan klaar.",
         body: "Hallo zonaanbidders,\n\nEindelijk is het zover: het officiële terrasseizoen is geopend! We hebben de parasols uitgeklapt, de fusten zijn koud gelegd, en de bitterballen liggen klaar voor de frituur.\n\nKom na werk lekker borrelen in het heerlijke lentezonnetje. De eerste ronde bitterballen is op onze kosten als je via deze mail reserveert!\n\nProost,\nTeam Het Paardje",
         imageUrl: realImages[4],
         status: "scheduled", date: "May 5th"
     },
     {
         month: 6, name: "June", subject: "Nieuwe Zomerse Lunchkaart 🥪",
-        summary: "Introducing the new lightweight summer menu items and fresh salads.",
+        summary: "Introductie van de nieuwe lichte zomerse menukaart en frisse salades.",
         body: "Beste gasten,\n\nMet het warme weer hebben we de menukaart vernieuwd! Ontdek onze gloednieuwe frisse salades, lichte lunchgerechten en ijskoude huisgemaakte limonades.\n\nPerfect voor een snelle zakenlunch of een lange, lome middag op het plein. Let op: we serveren nu ook de populaire Burrata Sandwich!\n\nZien we je rond de lunch?\n\nGroet,\nHet Paardje",
         imageUrl: realImages[5],
         status: "scheduled", date: "Jun 5th"
     },
     {
         month: 7, name: "July", subject: "Verkoeling op het Terras 🧊",
-        summary: "Highlighting the refreshing craft beers and cold drinks to beat the heat.",
+        summary: "Aandacht voor verfrissende speciaalbieren en koude drankjes tegen de hitte.",
         body: "Poeh, wat een hitte!\n\nAls de mussen van het dak vallen, is er maar één plek in Amsterdam waar het wél uit te houden is: onder onze grote markies met een ijskoude speciaal Weizen in je hand.\n\nWe hebben nieuwe zomerbieren op tap én verse Aperol Spritz klaarstaan. Kom lekker bij ons afkoelen.\n\nTot vanmiddag!\n\nLiefs,\nTeam Het Paardje",
         imageUrl: realImages[0],
         status: "scheduled", date: "Jul 5th"
     },
     {
         month: 8, name: "August", subject: "Laatste Zomerdagen: Borreltijd 🍻",
-        summary: "Promoting extended evening kitchen hours for those late summer drinks.",
+        summary: "Promotie van langere avondopeningstijden van de keuken voor late borrelaars.",
         body: "Hi Borrelaars,\n\nAugustus! De avonden zijn nog lang en heerlijk zwoel. Om dit maximale uit de zomer te halen, blijft onze keuken deze hele maand extra laat open tijdens de weekenden!\n\nZin in nog een late snack na je drankjes? Wij got you covered met onze heerlijke borrelhappen.\n\nZien we je vanavond?\n\nGroetjes,\nHet Paardje",
         imageUrl: realImages[1],
         status: "scheduled", date: "Aug 5th"
     },
     {
         month: 9, name: "September", subject: "Herfst in De Pijp 🍂",
-        summary: "Transitioning to hearty, warm autumn dishes and rich bockbeers.",
+        summary: "De overgang naar hartige, warme herfstgerechten en rijke bockbieren.",
         body: "Beste vrienden,\n\nDe blaadjes verkleuren en de herfst doet officieel zijn intrede in De Pijp. Tijd om het binnen weer ouderwets gezellig te maken!\n\nWe trappen de herfst af met ons nieuwe bockbier menu. Rijke, donkere bieren die perfect passen bij onze warme bites en het knisperende geroezemoes binnen.\n\nKom gezellig met je vrienden de warmte opzoeken.\n\nLiefs,\nTeam Het Paardje",
         imageUrl: realImages[2],
         status: "scheduled", date: "Sep 5th"
     },
     {
         month: 10, name: "October", subject: "Halloween Borrel & Bites 🎃",
-        summary: "Special themed snacks and cozy vibes during the colder October days.",
+        summary: "Speciale thema-snacks en een knusse sfeer tijdens de koudere oktoberdagen.",
         body: "Boo!\n\nHet is de griezeligste tijd van het jaar, maar bij ons is het natuurlijk alsnog altijd hartstikke knus.\n\nRondom Halloween serveren we speciale 'spooky' cocktails en pompoen bites. Kom gezellig in de stemming met je vrienden, the meer zielen, the meer vreugd!\n\nTrek je leukste outfit aan, of kom gewoon lekker zoals je bent.\n\nTot snel!\n\nLiefs,\nTeam Het Paardje",
         imageUrl: realImages[3],
         status: "scheduled", date: "Oct 5th"
     },
     {
         month: 11, name: "November", subject: "Vier de Feestdagen bij Ons 🥂",
-        summary: "Pushing group reservations and corporate end-of-year drinks.",
+        summary: "Focus op groepsreserveringen en zakelijke eindejaarsborrels.",
         body: "Beste relaties en stamgasten,\n\nDe decembermaand komt sneller dichterbij dan je denkt! Heb je de eindejaarsborrel voor je bedrijf, vriendengroep of sportteam al gepland?\n\nBij Het Paardje verzorgen we compleet geregelde borrels op maat, inclusief heerlijke happen en drankjes. Voorkom stress en reserveer nu alvast jullie plekje voordat we vol zitten.\n\nNeem contact op voor de mogelijkheden.\n\nProost,\nTeam Het Paardje",
         imageUrl: realImages[4],
         status: "scheduled", date: "Nov 5th"
@@ -135,7 +135,40 @@ export default function DashboardPage() {
     const [selectedCampaign, setSelectedCampaign] = useState<any>(null);
     const [selectedAnalytics, setSelectedAnalytics] = useState<any>(null);
     const [monthlyInstructions, setMonthlyInstructions] = useState<Record<number, string>>({});
+    const [isRegeneratingMonth, setIsRegeneratingMonth] = useState<Record<number, boolean>>({});
     const [approvingCampaignId, setApprovingCampaignId] = useState<number | null>(null);
+
+    const handleRegenerateMonth = async (month: number) => {
+        setIsRegeneratingMonth(prev => ({ ...prev, [month]: true }));
+        try {
+            // Simulate API call for regeneration
+            await new Promise(resolve => setTimeout(resolve, 2000));
+
+            const prompt = monthlyInstructions[month] || "Verbeterd op basis van feedback.";
+            const isADE = prompt.toLowerCase().includes("ade") || prompt.toLowerCase().includes("amsterdam dance event");
+
+            const updatedSummary = isADE ? "Speciale ADE borrels & bites op het Gerard Douplein!" : `Speciaal voor jullie: ${prompt.substring(0, 30)}...`;
+            const updatedBody = isADE
+                ? "Beste party people,\n\nIn oktober barst Amsterdam weer los tijdens het Amsterdam Dance Event! Tussen alle feestjes door moet er natuurlijk ook goed gegeten (en gedronken) worden.\n\nDaarom serveren wij deze hele week speciale ADE Recovery bites en espresso martini's op het Gerard Douplein. Kom lekker crashen en bijkomen met je vrienden in de knusse sfeer van Het Paardje.\n\nZien we jullie snel?\n\nLiefs,\nTeam Het Paardje"
+                : `Beste gasten,\n\nWe heten je van harte welkom deze maand! ${prompt}\n\nHopelijk zien we jullie snel weer op ons terras of gezellig binnen aan de bar voor een koud biertje en de fameuze bitterballen.\n\nTot dan!\n\nLiefs,\nTeam Het Paardje`;
+
+            setCampaigns(prev => prev.map(c =>
+                c.month === month ? { ...c, summary: updatedSummary, body: updatedBody } : c
+            ));
+
+            const localData = localStorage.getItem('mock_campaigns_state');
+            if (localData) {
+                const parsed = JSON.parse(localData);
+                const newCamps = parsed.map((c: any) =>
+                    c.month === month ? { ...c, summary: updatedSummary, body: updatedBody } : c
+                );
+                localStorage.setItem('mock_campaigns_state', JSON.stringify(newCamps));
+            }
+        } finally {
+            setIsRegeneratingMonth(prev => ({ ...prev, [month]: false }));
+            setMonthlyInstructions(prev => ({ ...prev, [month]: '' })); // Clear input after success
+        }
+    };
 
     const fetchCampaigns = async () => {
         const supabase = createClient();
@@ -481,8 +514,17 @@ export default function DashboardPage() {
                                         placeholder={`e.g. Focus on our new terrace this month...`}
                                         value={monthlyInstructions[camp.month] || ''}
                                         onChange={(e) => setMonthlyInstructions(prev => ({ ...prev, [camp.month]: e.target.value }))}
-                                        className="h-16 text-xs bg-white border-[#253551]/20 resize-none focus-visible:ring-1 focus-visible:ring-[#253551] placeholder:text-black/30 w-full"
+                                        className="h-16 text-xs bg-white border-[#253551]/20 resize-none focus-visible:ring-1 focus-visible:ring-[#253551] placeholder:text-black/30 w-full mb-2"
                                     />
+                                    <Button
+                                        size="sm"
+                                        onClick={() => handleRegenerateMonth(camp.month)}
+                                        disabled={isRegeneratingMonth[camp.month] || !monthlyInstructions[camp.month]}
+                                        className="w-full text-xs bg-[#253551] text-white hover:bg-[#253551]/90"
+                                    >
+                                        {isRegeneratingMonth[camp.month] ? <Loader2 className="w-3 h-3 mr-2 animate-spin" /> : <Sparkles className="w-3 h-3 mr-2" />}
+                                        {isRegeneratingMonth[camp.month] ? "Regenerating..." : "Regenerate Content"}
+                                    </Button>
                                 </div>
 
                                 {/* Analytics Mock Overview */}

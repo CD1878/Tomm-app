@@ -24,6 +24,8 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
     const [subject, setSubject] = useState(campaign.subject || '');
     const [summary, setSummary] = useState(campaign.summary || '');
     const [body, setBody] = useState(campaign.body || '');
+    const [language, setLanguage] = useState("NL");
+    const [isTranslating, setIsTranslating] = useState(false);
     const [expandedPlus, setExpandedPlus] = useState<number | null>(null);
     const [isEditingText, setIsEditingText] = useState(false);
 
@@ -39,6 +41,28 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
 
     const [isSaving, setIsSaving] = useState(false);
     const [saveSuccess, setSaveSuccess] = useState(false);
+
+    const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const newLang = e.target.value;
+        if (newLang === language) return;
+
+        setLanguage(newLang);
+        setIsTranslating(true);
+
+        // Mock translation logic based on the language
+        setTimeout(() => {
+            if (newLang === "EN") {
+                setSubject("Spring is in the air! 🌷");
+                setSummary("First sunny days on the Gerard Douplein terrace. Get ready!");
+                setBody("Hi everyone,\n\nCan you feel it? The days are getting longer and the sun is showing its face again on the Gerard Douplein!\n\nOur terrace is slowly becoming the hottest spot in De Pijp again. High time to leave that winter coat at home and enjoy the first real rays of sunshine with an ice-cold beer in your hand.\n\nSee you soon on the terrace!\n\nLove,\nTeam Het Paardje");
+            } else {
+                setSubject(campaign.subject || "Lente in je Bol! 🌷");
+                setSummary(campaign.summary || "De eerste zonnige dagen op het Gerard Douplein terras. Maak je klaar!");
+                setBody(campaign.body || "Hi allemaal,\n\nVoelen jullie het ook? De dagen worden langer en de zon laat zich weer vaker zien op het Gerard Douplein!\n\nOns terras wordt langzaam weer de warmste plek van De Pijp. Hoog tijd om die winterjas thuis te laten en te genieten van de eerste échte zonnestralen met een ijskoud biertje in je hand.\n\nTot snel op het terras!\n\nLiefs,\nTeam Het Paardje");
+            }
+            setIsTranslating(false);
+        }, 1500);
+    };
 
     const togglePlus = (id: number) => {
         if (expandedPlus === id) {
@@ -369,12 +393,15 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
 
                         <div className="space-y-2">
                             <Label className="text-xs font-bold text-[#111827] uppercase tracking-wider">Language</Label>
-                            <div className="w-24 bg-[#F3F4F6] rounded-md px-4 py-2 flex items-center justify-between cursor-not-allowed text-[#111827] font-medium text-sm">
-                                NL
-                                <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M1 1L5 5L9 1" stroke="#6B7280" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                </svg>
-                            </div>
+                            <select
+                                value={language}
+                                onChange={handleLanguageChange}
+                                disabled={isTranslating}
+                                className="w-24 bg-[#F3F4F6] border-none rounded-md px-3 py-2 text-[#111827] font-medium text-sm focus-visible:ring-1 focus-visible:ring-blue-500 outline-none cursor-pointer"
+                            >
+                                <option value="NL">NL</option>
+                                <option value="EN">EN</option>
+                            </select>
                         </div>
                     </div>
 
@@ -433,24 +460,16 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
                                     </div>
                                     <div className="text-xs text-black/60 mt-1">Send to everyone on your list</div>
                                 </div>
-                                <div className="p-3 border rounded-md bg-white cursor-pointer hover:border-black/30 transition-colors" onClick={() => { setAudience("Recent Diners"); setIsEditingAudience(false); }}>
-                                    <div className="font-medium text-[#111827]">Recent Diners</div>
-                                    <div className="text-xs text-black/60 mt-1">Guests who visited in the last 30 days</div>
-                                </div>
-                                <div className="p-3 border rounded-md bg-white cursor-pointer hover:border-black/30 transition-colors" onClick={() => { setAudience("VIP Members"); setIsEditingAudience(false); }}>
-                                    <div className="font-medium text-[#111827]">VIP Members</div>
-                                    <div className="text-xs text-black/60 mt-1">Frequent guests and big spenders</div>
-                                </div>
-                                <Button onClick={() => setIsEditingAudience(false)} variant="ghost" className="w-full text-xs">Cancel</Button>
+                                <Button onClick={() => setIsEditingAudience(false)} variant="ghost" className="w-full text-xs">Close</Button>
                             </div>
                         ) : (
                             <>
                                 <Button onClick={() => setIsEditingAudience(true)} variant="outline" className="w-full bg-white hover:bg-slate-50 border-black/10 text-[#111827] py-6 font-semibold shadow-sm rounded-md justify-between px-4">
-                                    <span>{audience}</span>
+                                    <span>All Subscribers</span>
                                     <span className="text-blue-600 text-xs bg-blue-50 px-2 py-1 rounded-full">Edit</span>
                                 </Button>
                                 <div className="bg-[#f8f9fa] text-center text-[#9CA3AF] py-3 rounded-md text-sm">
-                                    {audience === "All Subscribers" ? "1,248 subscribers" : audience === "Recent Diners" ? "342 subscribers" : "89 subscribers"}
+                                    1,248 subscribers
                                 </div>
                             </>
                         )}
@@ -464,7 +483,7 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
                         {isSaving ? "Saving..." : saveSuccess ? "Saved Successfully!" : "Review and send"}
                     </Button>
                     <div className="text-center text-xs text-[#9CA3AF] font-light">
-                        Send your campaign to {audience === "All Subscribers" ? "1,248" : audience === "Recent Diners" ? "342" : "89"} subscribers
+                        Send your campaign to 1,248 subscribers
                     </div>
                 </div>
 

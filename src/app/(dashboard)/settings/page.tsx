@@ -14,6 +14,7 @@ export default function SettingsPage() {
     const [isScraping, setIsScraping] = useState(false);
     const [scrapeSuccess, setScrapeSuccess] = useState(false);
     const [instructions, setInstructions] = useState("");
+    const [defaultLanguage, setDefaultLanguage] = useState("NL");
     const [newEmail, setNewEmail] = useState("");
     const [addSuccess, setAddSuccess] = useState(false);
     const [subscribers, setSubscribers] = useState<{ email: string, source: string, date: string }[]>([]);
@@ -28,6 +29,10 @@ export default function SettingsPage() {
         const savedInstructions = localStorage.getItem('tomm_global_instructions');
         if (savedInstructions) {
             setInstructions(savedInstructions);
+        }
+        const savedLanguage = localStorage.getItem('tomm_default_language');
+        if (savedLanguage) {
+            setDefaultLanguage(savedLanguage);
         }
 
         const savedSubs = localStorage.getItem('tomm_demo_subscribers');
@@ -75,6 +80,7 @@ export default function SettingsPage() {
 
         // Save global instructions to local storage for the dashboard to use
         localStorage.setItem('tomm_global_instructions', instructions);
+        localStorage.setItem('tomm_default_language', defaultLanguage);
 
         // Simulate API call to scrape
         setTimeout(() => {
@@ -142,6 +148,19 @@ export default function SettingsPage() {
                                         className="pl-10 bg-white border-[#253551]/20 focus-visible:ring-1 focus-visible:ring-[#253551] text-black placeholder:text-black/40 h-11"
                                     />
                                 </div>
+                            </div>
+
+                            <div className="space-y-2 pt-2 border-t border-[#253551]/10">
+                                <Label className="text-[#253551] font-medium">Default Generated Language</Label>
+                                <p className="text-xs text-black/50 mb-2">Select the primarily used language for all automations and generated campaigns.</p>
+                                <select
+                                    value={defaultLanguage}
+                                    onChange={(e) => setDefaultLanguage(e.target.value)}
+                                    className="w-full bg-white border border-[#253551]/20 rounded-md focus-visible:ring-1 focus-visible:ring-[#253551] text-black h-11 px-3 text-sm"
+                                >
+                                    <option value="NL">Nederlands (Dutch)</option>
+                                    <option value="EN">English</option>
+                                </select>
                             </div>
 
                             <div className="space-y-2 pt-2 border-t border-[#253551]/10">
