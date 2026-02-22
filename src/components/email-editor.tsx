@@ -113,7 +113,7 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
         </div>
     );
 
-    const SeparatorWithPlus = ({ id }: { id: number }) => (
+    const SeparatorWithPlus = ({ id, insertIndex }: { id: string | number, insertIndex: number }) => (
         <div className="relative py-8 w-full group">
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                 <div className="w-[80%] border-t border-dashed border-[#E5E7EB]"></div>
@@ -121,7 +121,7 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
             {expandedPlus !== id && (
                 <div className="absolute inset-0 flex items-center justify-center">
                     <button
-                        onClick={() => togglePlus(id)}
+                        onClick={() => togglePlus(id as any)}
                         className="w-6 h-6 bg-[#E0E7FF] text-[#1877F2] rounded-full flex items-center justify-center hover:bg-[#1877F2] hover:text-white transition-colors duration-200 shadow-sm"
                     >
                         <Plus className="w-4 h-4" />
@@ -131,12 +131,25 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
             {expandedPlus === id && (
                 <ExtraWidgetGrid onAddBlock={(type, label) => {
                     const newBlock = { id: Math.random().toString(36).substr(2, 9), type, label };
-                    setBlocks([...blocks, newBlock]);
+                    const newBlocks = [...blocks];
+                    newBlocks.splice(insertIndex, 0, newBlock);
+                    setBlocks(newBlocks);
                     setExpandedPlus(null);
                 }} />
             )}
         </div>
     );
+
+    // Initialize with static layout blocks so they can be reordered or interspersed with dynamic blocks
+    React.useEffect(() => {
+        if (blocks.length === 0) {
+            setBlocks([
+                { id: 'static-hero', type: 'static-hero' },
+                { id: 'static-text', type: 'static-text' },
+                { id: 'static-reserve', type: 'static-reserve' }
+            ]);
+        }
+    }, []);
 
     return (
         <div className="flex h-[85vh] w-full bg-white overflow-hidden rounded-lg">
@@ -149,7 +162,12 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
                     <div className="py-10 flex flex-col items-center justify-center border-b border-black/5 px-8">
                         {businessData.logoUrl ? (
                             // eslint-disable-next-line @next/next/no-img-element
-                            <img src={businessData.logoUrl} alt={businessData.name} className="h-16 w-auto object-contain" />
+                            <img
+                                src={businessData.logoUrl}
+                                alt={businessData.name}
+                                className="h-16 w-auto object-contain"
+                                onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                            />
                         ) : (
                             <div className="flex flex-col items-center opacity-80 mb-2">
                                 <div className="w-20 h-16 border-2 border-black/80 rounded-sm relative flex justify-center items-end">
@@ -160,131 +178,141 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
                         )}
                     </div>
 
-                    <SeparatorWithPlus id={1} />
+                    <SeparatorWithPlus id="top" insertIndex={0} />
 
-                    <SeparatorWithPlus id={1} />
-
-                    {/* Feature Image */}
-                    <div className="px-8 mb-4 relative group">
-                        {campaign.imageUrl ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
-                                src={campaign.imageUrl}
-                                alt="Campaign Header"
-                                className="w-full h-auto rounded-xl object-cover"
-                                onError={(e) => {
-                                    // Fallback if the AI hallucinated a broken URL or image is missing
-                                    e.currentTarget.src = "https://images.unsplash.com/photo-1414235077428-33898ed1e829?q=80&w=800&auto=format&fit=crop";
-                                }}
-                            />
-                        ) : (
-                            <div className="w-full h-64 bg-slate-100 rounded-xl flex items-center justify-center text-slate-400">
-                                <span>Geen afbeelding geselecteerd</span>
-                            </div>
-                        )}
-                        {/* Hover Overlay for replacing image */}
-                        <div className="absolute inset-0 bg-black/5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
-                            <div className="bg-white px-4 py-2 rounded-md shadow-md flex items-center gap-2 pointer-events-auto cursor-pointer font-medium text-sm text-[#374151]">
-                                <ImageIcon className="w-4 h-4" /> Vervang Afbeelding
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Title & Body Block */}
-                    <div className="px-8 mt-6 relative" onClick={() => setIsEditingText(true)}>
-                        {isEditingText && (
-                            <div className="absolute -top-12 left-8 right-8 bg-black rounded-lg p-2 flex items-center gap-4 text-white z-20 shadow-lg animate-in fade-in slide-in-from-bottom-2 duration-200">
-                                <Code className="w-4 h-4 ml-2 hover:text-blue-400 cursor-pointer" />
-                                <Bold className="w-4 h-4 text-blue-400 cursor-pointer" />
-                                <Italic className="w-4 h-4 hover:text-blue-400 cursor-pointer" />
-                                <Strikethrough className="w-4 h-4 hover:text-blue-400 cursor-pointer" />
-                                <List className="w-4 h-4 hover:text-blue-400 cursor-pointer" />
-                                <LinkIcon className="w-4 h-4 hover:text-blue-400 cursor-pointer" />
-                                <Smile className="w-4 h-4 text-yellow-400 ml-auto mr-2 cursor-pointer" />
-                            </div>
-                        )}
-
-                        <div className={`p-1 rounded-sm ${isEditingText ? 'ring-2 ring-blue-500 ring-offset-4' : 'hover:ring-1 hover:ring-black/10'}`}>
-                            <h2 className="text-2xl font-bold text-[#111827] mb-6 leading-snug break-words">
-                                {subject || "Jouw nieuwe nieuwsbrief"}
-                            </h2>
-                            <textarea
-                                value={body}
-                                onChange={(e) => setBody(e.target.value)}
-                                className="w-full min-h-[300px] text-[15px] leading-[1.8] text-[#374151] resize-none focus:outline-none bg-transparent"
-                            />
-                        </div>
-                    </div>
-
-                    {/* Reserve Block */}
-                    <div className="px-8 mt-8 mb-4">
-                        <h3 className="text-xl font-bold text-[#111827] mb-4">Reserveer nu een tafel</h3>
-                        <p className="text-[#374151] mb-6 leading-relaxed">
-                            Een reservering bij ons is een belofte voor een geweldig avondje uit. Geweldig voor jou én je tafelgenoten.
-                        </p>
-                        <Button onClick={(e) => { e.currentTarget.innerText = "Geklikt!"; setTimeout(() => { if (e.currentTarget) e.currentTarget.innerText = "Reserveer nu" }, 1500); }} className="bg-[#1f2937] text-white hover:bg-black px-8 py-6 rounded-md font-semibold font-sans transition-all">
-                            Reserveer nu
-                        </Button>
-                    </div>
-
-                    {/* Dynamic Blocks */}
-                    {blocks.map((block) => (
-                        <div key={block.id} className="relative group px-8 mt-6">
-                            <div className="absolute -left-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <Button variant="ghost" size="icon" className="h-6 w-6 text-red-500 hover:text-red-700 hover:bg-red-50" onClick={() => setBlocks(blocks.filter(b => b.id !== block.id))}>
-                                    <X className="h-4 w-4" />
-                                </Button>
-                            </div>
-
-                            {block.type === 'image' && (
-                                <div
-                                    onClick={(e) => {
-                                        const el = e.currentTarget;
-                                        el.innerHTML = '<div class="flex flex-col items-center"><svg class="lucide lucide-loader2 h-6 w-6 text-[#253551] animate-spin mb-2" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg><span class="text-sm font-medium">Bezig met uploaden...</span></div>';
-                                        setTimeout(() => {
-                                            el.innerHTML = '<img src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=800&auto=format&fit=crop" class="w-full h-full object-cover rounded-xl" />';
-                                            el.className = "w-full h-64 rounded-xl flex items-center justify-center p-0 overflow-hidden";
-                                        }, 2000);
-                                    }}
-                                    className="w-full h-64 bg-slate-100 rounded-xl flex items-center justify-center border-2 border-dashed border-slate-300 text-slate-400 cursor-pointer hover:bg-slate-50 transition-all"
-                                >
-                                    <div className="flex flex-col items-center pointer-events-none">
-                                        <ImageIcon className="w-8 h-8 mb-2 opacity-50" />
-                                        <span className="text-sm font-medium">Klik om afbeelding te uploaden</span>
+                    {blocks.map((block, index) => (
+                        <React.Fragment key={block.id}>
+                            <div className="relative group">
+                                {/* Delete button for dynamic blocks ONLY */}
+                                {!block.id.startsWith('static-') && (
+                                    <div className="absolute -left-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                                        <Button variant="ghost" size="icon" className="h-6 w-6 text-red-500 hover:text-red-700 hover:bg-red-50" onClick={() => setBlocks(blocks.filter(b => b.id !== block.id))}>
+                                            <X className="h-4 w-4" />
+                                        </Button>
                                     </div>
-                                </div>
-                            )}
+                                )}
 
-                            {block.type === 'text' && (
-                                <textarea
-                                    className="w-full min-h-[100px] text-[15px] leading-[1.8] text-[#374151] resize-none focus:outline-none bg-transparent hover:ring-1 hover:ring-black/10 p-2 rounded-sm"
-                                    placeholder="Typ hier je tekst..."
-                                />
-                            )}
+                                {block.type === 'static-hero' && (
+                                    <div className="px-8 mb-4 relative group">
+                                        {campaign.imageUrl ? (
+                                            // eslint-disable-next-line @next/next/no-img-element
+                                            <img
+                                                src={campaign.imageUrl}
+                                                alt="Campaign Header"
+                                                className="w-full h-auto rounded-xl object-cover"
+                                                onError={(e) => {
+                                                    // Fallback if the AI hallucinated a broken URL or image is missing
+                                                    e.currentTarget.src = "https://images.unsplash.com/photo-1414235077428-33898ed1e829?q=80&w=800&auto=format&fit=crop";
+                                                }}
+                                            />
+                                        ) : (
+                                            <div className="w-full h-64 bg-slate-100 rounded-xl flex items-center justify-center text-slate-400">
+                                                <span>Geen afbeelding geselecteerd</span>
+                                            </div>
+                                        )}
+                                        {/* Hover Overlay for replacing image */}
+                                        <div className="absolute inset-x-8 top-0 bottom-0 bg-black/5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+                                            <div className="bg-white px-4 py-2 rounded-md shadow-md flex items-center gap-2 pointer-events-auto cursor-pointer font-medium text-sm text-[#374151]">
+                                                <ImageIcon className="w-4 h-4" /> Vervang Afbeelding
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
 
-                            {block.type === 'button' && (
-                                <div className="flex justify-center my-4">
-                                    <Button onClick={(e) => { e.currentTarget.innerText = "Geklikt!"; setTimeout(() => { if (e.currentTarget) e.currentTarget.innerText = "Nieuwe Knop" }, 1500); }} className="bg-[#1f2937] text-white hover:bg-black px-8 py-6 rounded-md font-semibold font-sans transition-all">
-                                        Nieuwe Knop
-                                    </Button>
-                                </div>
-                            )}
+                                {block.type === 'static-text' && (
+                                    <div className="px-8 mt-6 relative" onClick={() => setIsEditingText(true)}>
+                                        {isEditingText && (
+                                            <div className="absolute -top-12 left-8 right-8 bg-black rounded-lg p-2 flex items-center gap-4 text-white z-20 shadow-lg animate-in fade-in slide-in-from-bottom-2 duration-200">
+                                                <Code className="w-4 h-4 ml-2 hover:text-blue-400 cursor-pointer" />
+                                                <Bold className="w-4 h-4 text-blue-400 cursor-pointer" />
+                                                <Italic className="w-4 h-4 hover:text-blue-400 cursor-pointer" />
+                                                <Strikethrough className="w-4 h-4 hover:text-blue-400 cursor-pointer" />
+                                                <List className="w-4 h-4 hover:text-blue-400 cursor-pointer" />
+                                                <LinkIcon className="w-4 h-4 hover:text-blue-400 cursor-pointer" />
+                                                <Smile className="w-4 h-4 text-yellow-400 ml-auto mr-2 cursor-pointer" />
+                                            </div>
+                                        )}
 
-                            {block.type === 'spacer' && (
-                                <div className="py-8 w-full flex items-center justify-center">
-                                    <div className="w-[80%] border-t border-solid border-[#E5E7EB]"></div>
-                                </div>
-                            )}
+                                        <div className={`p-1 rounded-sm ${isEditingText ? 'ring-2 ring-blue-500 ring-offset-4' : 'hover:ring-1 hover:ring-black/10'}`}>
+                                            <h2 className="text-2xl font-bold text-[#111827] mb-6 leading-snug break-words">
+                                                {subject || "Jouw nieuwe nieuwsbrief"}
+                                            </h2>
+                                            <textarea
+                                                value={body}
+                                                onChange={(e) => setBody(e.target.value)}
+                                                className="w-full min-h-[300px] text-[15px] leading-[1.8] text-[#374151] resize-none focus:outline-none bg-transparent"
+                                            />
+                                        </div>
+                                    </div>
+                                )}
 
-                            {block.type === 'generic' && (
-                                <div className="w-full h-32 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-center text-slate-400 font-medium">
-                                    [ Placeholder voor {block.label} ]
-                                </div>
-                            )}
-                        </div>
+                                {block.type === 'static-reserve' && (
+                                    <div className="px-8 mt-8 mb-4">
+                                        <h3 className="text-xl font-bold text-[#111827] mb-4">Reserveer nu een tafel</h3>
+                                        <p className="text-[#374151] mb-6 leading-relaxed">
+                                            Een reservering bij ons is een belofte voor een geweldig avondje uit. Geweldig voor jou én je tafelgenoten.
+                                        </p>
+                                        <Button onClick={(e) => { e.currentTarget.innerText = "Geklikt!"; setTimeout(() => { if (e.currentTarget) e.currentTarget.innerText = "Reserveer nu" }, 1500); }} className="bg-[#1f2937] text-white hover:bg-black px-8 py-6 rounded-md font-semibold font-sans transition-all">
+                                            Reserveer nu
+                                        </Button>
+                                    </div>
+                                )}
+
+                                {block.type === 'image' && (
+                                    <div className="px-8 mt-6">
+                                        <div
+                                            onClick={(e) => {
+                                                const el = e.currentTarget;
+                                                el.innerHTML = '<div class="flex flex-col items-center"><svg class="lucide lucide-loader2 h-6 w-6 text-[#253551] animate-spin mb-2" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg><span class="text-sm font-medium">Bezig met uploaden...</span></div>';
+                                                setTimeout(() => {
+                                                    el.innerHTML = '<img src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=800&auto=format&fit=crop" class="w-full h-full object-cover rounded-xl" />';
+                                                    el.className = "w-full h-64 rounded-xl flex items-center justify-center p-0 overflow-hidden";
+                                                }, 2000);
+                                            }}
+                                            className="w-full h-64 bg-slate-100 rounded-xl flex items-center justify-center border-2 border-dashed border-slate-300 text-slate-400 cursor-pointer hover:bg-slate-50 transition-all"
+                                        >
+                                            <div className="flex flex-col items-center pointer-events-none">
+                                                <ImageIcon className="w-8 h-8 mb-2 opacity-50" />
+                                                <span className="text-sm font-medium">Klik om afbeelding te uploaden</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {block.type === 'text' && (
+                                    <div className="px-8 mt-6">
+                                        <textarea
+                                            className="w-full min-h-[100px] text-[15px] leading-[1.8] text-[#374151] resize-none focus:outline-none bg-transparent hover:ring-1 hover:ring-black/10 p-2 rounded-sm"
+                                            placeholder="Typ hier je tekst..."
+                                        />
+                                    </div>
+                                )}
+
+                                {block.type === 'button' && (
+                                    <div className="px-8 flex justify-center my-4">
+                                        <Button onClick={(e) => { e.currentTarget.innerText = "Geklikt!"; setTimeout(() => { if (e.currentTarget) e.currentTarget.innerText = "Nieuwe Knop" }, 1500); }} className="bg-[#1f2937] text-white hover:bg-black px-8 py-6 rounded-md font-semibold font-sans transition-all">
+                                            Nieuwe Knop
+                                        </Button>
+                                    </div>
+                                )}
+
+                                {block.type === 'spacer' && (
+                                    <div className="py-8 w-full flex items-center justify-center">
+                                        <div className="w-[80%] border-t border-solid border-[#E5E7EB]"></div>
+                                    </div>
+                                )}
+
+                                {block.type === 'generic' && (
+                                    <div className="px-8 mt-6">
+                                        <div className="w-full h-32 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-center text-slate-400 font-medium">
+                                            [ Placeholder voor {block.label} ]
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                            <SeparatorWithPlus id={block.id} insertIndex={index + 1} />
+                        </React.Fragment>
                     ))}
-
-                    {blocks.length > 0 && <SeparatorWithPlus id={3} />}
 
                     {/* Footer Block */}
                     <div className="px-8 pt-8 flex flex-col items-center justify-center text-center">

@@ -62,14 +62,62 @@ const mockCampaigns = [
         imageUrl: "https://images.unsplash.com/photo-1554522435-081033b00c9e?q=80&w=800&auto=format&fit=crop",
         status: "scheduled", date: "Apr 5th"
     },
-    { month: 5, name: "May", subject: "Zon, Bier & Bitterballen ☀️", summary: "Official terrace season kick-off party announcement. Cold beers waiting.", status: "scheduled", date: "May 5th" },
-    { month: 6, name: "June", subject: "Nieuwe Zomerse Lunchkaart 🥪", summary: "Introducing the new lightweight summer menu items and fresh salads.", status: "scheduled", date: "Jun 5th" },
-    { month: 7, name: "July", subject: "Verkoeling op het Terras 🧊", summary: "Highlighting the refreshing craft beers and cold drinks to beat the heat.", status: "scheduled", date: "Jul 5th" },
-    { month: 8, name: "August", subject: "Laatste Zomerdagen: Borreltijd 🍻", summary: "Promoting extended evening kitchen hours for those late summer drinks.", status: "scheduled", date: "Aug 5th" },
-    { month: 9, name: "September", subject: "Herfst in De Pijp 🍂", summary: "Transitioning to hearty, warm autumn dishes and rich bockbeers.", status: "scheduled", date: "Sep 5th" },
-    { month: 10, name: "October", subject: "Halloween Borrel & Bites 🎃", summary: "Special themed snacks and cozy vibes during the colder October days.", status: "scheduled", date: "Oct 5th" },
-    { month: 11, name: "November", subject: "Vier de Feestdagen bij Ons 🥂", summary: "Pushing group reservations and corporate end-of-year drinks.", status: "scheduled", date: "Nov 5th" },
-    { month: 12, name: "December", subject: "Fijne Feestdagen vanuit Het Paardje ✨", summary: "Christmas greetings and New Year's Eve special drinking packages.", status: "draft", date: "Dec 5th" },
+    {
+        month: 5, name: "May", subject: "Zon, Bier & Bitterballen ☀️",
+        summary: "Official terrace season kick-off party announcement. Cold beers waiting.",
+        body: "Hallo zonaanbidders,\n\nEindelijk is het zover: het officiële terrasseizoen is geopend! We hebben de parasols uitgeklapt, de fusten zijn koud gelegd, en de bitterballen liggen klaar voor de frituur.\n\nKom na werk lekker borrelen in het heerlijke lentezonnetje. De eerste ronde bitterballen is op onze kosten als je via deze mail reserveert!\n\nProost,\nTeam Het Paardje",
+        imageUrl: "https://images.unsplash.com/photo-1538332576228-eb5b4c4de6f5?q=80&w=800&auto=format&fit=crop",
+        status: "scheduled", date: "May 5th"
+    },
+    {
+        month: 6, name: "June", subject: "Nieuwe Zomerse Lunchkaart 🥪",
+        summary: "Introducing the new lightweight summer menu items and fresh salads.",
+        body: "Beste gasten,\n\nMet het warme weer hebben we de menukaart vernieuwd! Ontdek onze gloednieuwe frisse salades, lichte lunchgerechten en ijskoude huisgemaakte limonades.\n\nPerfect voor een snelle zakenlunch of een lange, lome middag op het plein. Let op: we serveren nu ook de populaire Burrata Sandwich!\n\nZien we je rond de lunch?\n\nGroet,\nHet Paardje",
+        imageUrl: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=800&auto=format&fit=crop",
+        status: "scheduled", date: "Jun 5th"
+    },
+    {
+        month: 7, name: "July", subject: "Verkoeling op het Terras 🧊",
+        summary: "Highlighting the refreshing craft beers and cold drinks to beat the heat.",
+        body: "Poeh, wat een hitte!\n\nAls de mussen van het dak vallen, is er maar één plek in Amsterdam waar het wél uit te houden is: onder onze grote markies met een ijskoude speciaal Weizen in je hand.\n\nWe hebben nieuwe zomerbieren op tap én verse Aperol Spritz klaarstaan. Kom lekker bij ons afkoelen.\n\nTot vanmiddag!\n\nLiefs,\nTeam Het Paardje",
+        imageUrl: "https://images.unsplash.com/photo-1563227812-0ea4c22e6b26?q=80&w=800&auto=format&fit=crop",
+        status: "scheduled", date: "Jul 5th"
+    },
+    {
+        month: 8, name: "August", subject: "Laatste Zomerdagen: Borreltijd 🍻",
+        summary: "Promoting extended evening kitchen hours for those late summer drinks.",
+        body: "Hi Borrelaars,\n\nAugustus! De avonden zijn nog lang en heerlijk zwoel. Om dit maximale uit de zomer te halen, blijft onze keuken deze hele maand extra laat open tijdens de weekenden!\n\nZin in nog een late snack na je drankjes? Wij got you covered met onze heerlijke borrelhappen.\n\nZien we je vanavond?\n\nGroetjes,\nHet Paardje",
+        imageUrl: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?q=80&w=800&auto=format&fit=crop",
+        status: "scheduled", date: "Aug 5th"
+    },
+    {
+        month: 9, name: "September", subject: "Herfst in De Pijp 🍂",
+        summary: "Transitioning to hearty, warm autumn dishes and rich bockbeers.",
+        body: "Beste vrienden,\n\nDe blaadjes verkleuren en de herfst doet officieel zijn intrede in De Pijp. Tijd om het binnen weer ouderwets gezellig te maken!\n\nWe trappen de herfst af met ons nieuwe bockbier menu. Rijke, donkere bieren die perfect passen bij onze warme bites en het knisperende geroezemoes binnen.\n\nKom gezellig met je vrienden de warmte opzoeken.\n\nLiefs,\nTeam Het Paardje",
+        imageUrl: "https://images.unsplash.com/photo-1534349735944-2b3a6f7a18bb?q=80&w=800&auto=format&fit=crop",
+        status: "scheduled", date: "Sep 5th"
+    },
+    {
+        month: 10, name: "October", subject: "Halloween Borrel & Bites 🎃",
+        summary: "Special themed snacks and cozy vibes during the colder October days.",
+        body: "Boo!\n\nHet is de griezeligste tijd van het jaar, maar bij ons is het natuurlijk alsnog altijd hartstikke knus.\n\nRondom Halloween serveren we speciale 'spooky' cocktails en pompoen bites. Kom gezellig in de stemming met je vrienden, the meer zielen, the meer vreugd!\n\nTrek je leukste outfit aan, of kom gewoon lekker zoals je bent.\n\nTot snel!\n\nLiefs,\nTeam Het Paardje",
+        imageUrl: "https://images.unsplash.com/photo-1505934333218-8feae223edeb?q=80&w=800&auto=format&fit=crop",
+        status: "scheduled", date: "Oct 5th"
+    },
+    {
+        month: 11, name: "November", subject: "Vier de Feestdagen bij Ons 🥂",
+        summary: "Pushing group reservations and corporate end-of-year drinks.",
+        body: "Beste relaties en stamgasten,\n\nDe decembermaand komt sneller dichterbij dan je denkt! Heb je de eindejaarsborrel voor je bedrijf, vriendengroep of sportteam al gepland?\n\nBij Het Paardje verzorgen we compleet geregelde borrels op maat, inclusief heerlijke happen en drankjes. Voorkom stress en reserveer nu alvast jullie plekje voordat we vol zitten.\n\nNeem contact op voor de mogelijkheden.\n\nProost,\nTeam Het Paardje",
+        imageUrl: "https://images.unsplash.com/photo-1511556820780-d912e42b4980?q=80&w=800&auto=format&fit=crop",
+        status: "scheduled", date: "Nov 5th"
+    },
+    {
+        month: 12, name: "December", subject: "Fijne Feestdagen vanuit Het Paardje ✨",
+        summary: "Christmas greetings and New Year's Eve special drinking packages.",
+        body: "Lieve gasten,\n\nWat een waanzinnig gezellig jaar hebben we weer samen gehad op het Gerard Douplein! Namens het hele team willen we jullie enorm bedanken voor jullie komst, mooie verhalen en de topsfeer.\n\nWe wensen iedereen fantastische, warme feestdagen. En vergeet niet: we zijn open tijdens Oud & Nieuw voor de echte buurtborrel!\n\nOp een prachtig 2027!\n\nLiefs,\nTeam Het Paardje",
+        imageUrl: "https://images.unsplash.com/photo-1543269865-cbf427effbad?q=80&w=800&auto=format&fit=crop",
+        status: "draft", date: "Dec 5th"
+    },
 ];
 
 export default function DashboardPage() {
@@ -253,6 +301,16 @@ export default function DashboardPage() {
                             send_date: mockCamp.date,
                             status: mockCamp.status
                         }]);
+                    } else {
+                        // Update existing mock campaigns to ensure they get the new full bodies and images
+                        await supabase.from('campaigns').update({
+                            subject: mockCamp.subject,
+                            summary: mockCamp.summary,
+                            bodyText: mockCamp.body,
+                            image_url: mockCamp.imageUrl,
+                            send_date: mockCamp.date,
+                            status: mockCamp.status
+                        }).eq('id', existing.id);
                     }
                 }
             } else {
@@ -273,7 +331,8 @@ export default function DashboardPage() {
             name: "Café Het Paardje",
             address: "Gerard Douplein 1",
             zipCode: "1072 VR, Amsterdam",
-            website: "www.cafehetpaardje.nl"
+            website: "www.cafehetpaardje.nl",
+            logoUrl: "https://logo.clearbit.com/cafehetpaardje.nl"
         };
 
         return (
