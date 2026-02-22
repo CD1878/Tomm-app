@@ -73,13 +73,40 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
         }
     };
 
-    const handleTest = () => {
+    const handleTest = async () => {
         setIsTesting(true);
-        setTimeout(() => {
-            setIsTesting(false);
+        try {
+            const htmlContent = `
+                <div style="font-family: sans-serif; color: #111827;">
+                    <h2>${subject || 'Test E-mail'}</h2>
+                    <p style="color: #6B7280; font-style: italic;">${summary || 'Preheader text...'}</p>
+                    <hr style="border: 0; border-top: 1px solid #E5E7EB; margin: 20px 0;" />
+                    <div style="white-space: pre-wrap; line-height: 1.6;">${body || 'Inhoud van de e-mail...'}</div>
+                    <hr style="border: 0; border-top: 1px solid #E5E7EB; margin: 20px 0;" />
+                    <p style="font-size: 12px; color: #9CA3AF;">Verzonden via TOMM voor ${businessData?.name || 'jouw bedrijf'}</p>
+                </div>
+            `;
+
+            const res = await fetch('/api/test-email', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    to: testEmail,
+                    subject: subject || 'Test e-mail vanuit TOMM',
+                    html: htmlContent
+                })
+            });
+
+            if (!res.ok) throw new Error('Test e-mail mislukt');
+
             setTestSuccess(true);
             setTimeout(() => setTestSuccess(false), 3000);
-        }, 1500);
+        } catch (error) {
+            console.error(error);
+            alert("Het versturen van de test e-mail is mislukt.");
+        } finally {
+            setIsTesting(false);
+        }
     };
 
     const handleEmailSave = async () => {
