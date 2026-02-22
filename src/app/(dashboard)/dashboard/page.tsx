@@ -345,7 +345,14 @@ export default function DashboardPage() {
         };
 
         return (
-            <div className="w-full bg-[#f8f9fa] overflow-hidden p-6 -mt-8">
+            <div className="w-full bg-[#f8f9fa] overflow-hidden p-6 -mt-8 relative">
+                <Button
+                    variant="outline"
+                    className="absolute top-8 left-8 z-50 bg-white"
+                    onClick={() => setSelectedCampaign(null)}
+                >
+                    &larr; Terug naar campagnes
+                </Button>
                 <EmailEditor
                     campaign={selectedCampaign}
                     businessData={businessData}
