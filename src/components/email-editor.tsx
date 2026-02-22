@@ -28,7 +28,7 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
     const [isTranslating, setIsTranslating] = useState(false);
     const [expandedPlus, setExpandedPlus] = useState<number | null>(null);
     const [isEditingText, setIsEditingText] = useState(false);
-    const [reservationUrl, setReservationUrl] = useState("");
+    const [websiteUrl, setWebsiteUrl] = useState("");
 
     // Track dynamically added blocks
     const [blocks, setBlocks] = useState<{ id: string; type: string; label?: string; content?: string }[]>([]);
@@ -180,9 +180,10 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
             ]);
         }
 
-        const storedUrl = localStorage.getItem('tomm_reservation_url');
+        const storedUrl = localStorage.getItem('tomm_website_url');
         if (storedUrl) {
-            setReservationUrl(storedUrl);
+            // Ensure URL has protocol
+            setWebsiteUrl(storedUrl.startsWith('http') ? storedUrl : `https://${storedUrl}`);
         }
     }, []);
 
@@ -289,10 +290,10 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
                                         </p>
                                         <Button
                                             onClick={(e) => {
-                                                if (reservationUrl) {
-                                                    window.open(reservationUrl, '_blank');
+                                                if (websiteUrl) {
+                                                    window.open(websiteUrl, '_blank');
                                                 } else {
-                                                    e.currentTarget.innerText = "Link ontbreekt!";
+                                                    e.currentTarget.innerText = "Website ontbreekt!";
                                                     setTimeout(() => { if (e.currentTarget) e.currentTarget.innerText = "Reserveer nu" }, 1500);
                                                 }
                                             }}
