@@ -180,12 +180,12 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
             ]);
         }
 
-        const storedUrl = localStorage.getItem('tomm_website_url');
+        const storedUrl = businessData?.website || localStorage.getItem('tomm_website_url');
         if (storedUrl) {
             // Ensure URL has protocol
             setWebsiteUrl(storedUrl.startsWith('http') ? storedUrl : `https://${storedUrl}`);
         }
-    }, []);
+    }, [businessData?.website]);
 
     return (
         <div className="flex flex-col lg:flex-row h-[85vh] w-full bg-white overflow-hidden rounded-lg">
