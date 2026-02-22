@@ -107,57 +107,7 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
                 <WidgetCategory title="Essentials">
                     <WidgetItem icon={Type} label="Text" onClick={() => onAddBlock('text')} />
                     <WidgetItem icon={ImageIcon} label="Image" onClick={() => onAddBlock('image')} />
-                    <WidgetItem icon={Minus} label="Button" onClick={() => onAddBlock('button')} />
-                    <WidgetItem icon={ArrowDownUp} label="Spacer" onClick={() => onAddBlock('spacer')} />
-                    <WidgetItem icon={LayoutGrid} label="Gallery" onClick={() => onAddBlock('image')} />
                     <WidgetItem icon={Video} label="Video" onClick={() => onAddBlock('generic', 'Video')} />
-                    <WidgetItem icon={ListOrdered} label="Form" onClick={() => onAddBlock('generic', 'Form')} />
-                    <WidgetItem icon={ListPlus} label="Accordion" onClick={() => onAddBlock('generic', 'Accordion')} />
-                    <WidgetItem icon={ArrowDownUp} label="Scrolling" onClick={() => onAddBlock('generic', 'Scrolling')} />
-                    <WidgetItem icon={Minus} label="Line" onClick={() => onAddBlock('spacer')} />
-                </WidgetCategory>
-
-                <WidgetCategory title="Sell">
-                    <WidgetItem icon={Package} label="Product" onClick={() => onAddBlock('generic', 'Product')} />
-                    <WidgetItem icon={Tag} label="Pricing Plan" onClick={() => onAddBlock('generic', 'Pricing Plan')} />
-                    <WidgetItem icon={Heart} label="Donation" onClick={() => onAddBlock('generic', 'Donation')} />
-                    <WidgetItem icon={Clock} label="Scheduling" onClick={() => onAddBlock('generic', 'Scheduling')} />
-                </WidgetCategory>
-
-                <WidgetCategory title="Display">
-                    <WidgetItem icon={FileText} label="Summary" onClick={() => onAddBlock('generic', 'Summary')} />
-                    <WidgetItem icon={Mail} label="Newsletter" onClick={() => onAddBlock('generic', 'Newsletter')} />
-                    <WidgetItem icon={Quote} label="Quote" onClick={() => onAddBlock('generic', 'Quote')} />
-                    <WidgetItem icon={Music} label="Audio" onClick={() => onAddBlock('generic', 'Audio')} />
-                    <WidgetItem icon={Calendar} label="Calendar" onClick={() => onAddBlock('generic', 'Calendar')} />
-                    <WidgetItem icon={MapPin} label="Map" onClick={() => onAddBlock('generic', 'Map')} />
-                    <WidgetItem icon={Utensils} label="Menu" onClick={() => onAddBlock('generic', 'Menu')} />
-                    <WidgetItem icon={BarChart2} label="Chart" onClick={() => onAddBlock('generic', 'Chart')} />
-                </WidgetCategory>
-
-                <WidgetCategory title="Code">
-                    <WidgetItem icon={Code} label="Code" onClick={() => onAddBlock('generic', 'Code')} />
-                    <WidgetItem icon={FileCode} label="Markdown" onClick={() => onAddBlock('generic', 'Markdown')} />
-                    <WidgetItem icon={Terminal} label="Embed" onClick={() => onAddBlock('generic', 'Embed')} />
-                </WidgetCategory>
-
-                <WidgetCategory title="Links">
-                    <WidgetItem icon={Share2} label="Social Links" onClick={() => onAddBlock('generic', 'Social Links')} />
-                    <WidgetItem icon={Search} label="Search Field" onClick={() => onAddBlock('generic', 'Search Field')} />
-                    <WidgetItem icon={LinkIcon} label="Page Link" onClick={() => onAddBlock('generic', 'Page Link')} />
-                    <WidgetItem icon={Tags} label="Tag Cloud" onClick={() => onAddBlock('generic', 'Tag Cloud')} />
-                    <WidgetItem icon={Rss} label="RSS" onClick={() => onAddBlock('generic', 'RSS')} />
-                    <WidgetItem icon={Archive} label="Archive" onClick={() => onAddBlock('generic', 'Archive')} />
-                </WidgetCategory>
-
-                <WidgetCategory title="Integrations">
-                    <WidgetItem icon={Instagram} label="Instagram" onClick={() => onAddBlock('generic', 'Instagram Integration')} />
-                    <WidgetItem icon={UtensilsCrossed} label="Tock" onClick={() => onAddBlock('generic', 'Tock Integration')} />
-                    <WidgetItem icon={Cloud} label="SoundCloud" onClick={() => onAddBlock('generic', 'SoundCloud Integration')} />
-                    <WidgetItem icon={Camera} label="Flickr" onClick={() => onAddBlock('generic', 'Flickr Integration')} />
-                    <WidgetItem icon={UtensilsCrossed} label="OpenTable" onClick={() => onAddBlock('generic', 'OpenTable Integration')} />
-                    <WidgetItem icon={HeartHandshake} label="Zola" onClick={() => onAddBlock('generic', 'Zola Integration')} />
-                    <WidgetItem icon={Music4} label="Bandsintown" onClick={() => onAddBlock('generic', 'Bandsintown Integration')} />
                 </WidgetCategory>
             </div>
         </div>
