@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, CalendarDays, Edit3, Send, CheckCircle2, Loader2, Image as ImageIcon, Eye, MousePointerClick, Users, Link as LinkIcon } from "lucide-react";
+import { Sparkles, CalendarDays, Edit3, Send, CheckCircle2, Loader2, Image as ImageIcon, Eye, MousePointerClick, Users, Link as LinkIcon, BarChart3, HelpCircle } from "lucide-react";
 import {
     Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter
 } from "@/components/ui/dialog";
@@ -13,22 +13,39 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { createClient } from "@/utils/supabase/client";
 import { useEffect } from 'react';
+import { EmailEditor } from "@/components/email-editor";
 
 // Mock data with rich content for the UI
+const mockAnalyticsStats = {
+    recipients: 2854,
+    deliveredPercent: 95.5,
+    opens: 1846,
+    openPercent: 64.7,
+    orders: 2,
+    revenue: 0,
+    unsubscribes: 37,
+    unsubPercent: 1.3,
+    visits: 28,
+    visitsPercent: 1.0,
+    hourlyOpens: [710, 180, 110, 60, 80, 40, 40, 40, 45, 30, 70, 82, 15, 12, 5, 2, 2, 2, 8, 2]
+};
+
 const mockCampaigns = [
     {
         month: 1, name: "January", subject: "Een Gezond Begin bij Café Het Paardje 🐴",
         summary: "Highlighting dry january specials like our 0.0% beers and healthy lunch wraps.",
         body: "Lieve gasten,\n\nNa al die feestdagen snappen we dat januari best pittig kan zijn. Tijd voor een fris en gezond begin!\n\nDaarom hebben we deze maand speciale Dry January mocktails en extra veel lichte, gezonde lunchopties aan ons menu toegevoegd. Kom gezellig langs om toch de sfeer van Het Paardje te ervaren, maar dan helemaal zen.\n\nZien we jullie snel?\n\nLiefs,\nTeam Het Paardje",
         imageUrl: "https://images.unsplash.com/photo-1544145945-f90425340c7e?q=80&w=800&auto=format&fit=crop",
-        status: "sent", date: "Jan 5th"
+        status: "sent", date: "Jan 5th",
+        analytics: mockAnalyticsStats
     },
     {
         month: 2, name: "February", subject: "Liefde & Gezelligheid: Valentine's Day ♥️",
         summary: "Promoting our cozy corner tables and special Valentine's sharing platters.",
         body: "Hey geliefden en vriendschappen,\n\nFebruari staat in het teken van de liefde! Of je nu je partner wilt verrassen of gewoon met je beste vrienden wil proosten, bij ons zit je goed.\n\nWe hebben speciale 'Sharing Platters' samengesteld: heerlijke hapjes om samen te delen onder het genot van een goed glas wijn of speciaalbier.\n\nReserveer snel jullie vaste hoekje online!\n\nProost,\nTeam Het Paardje",
         imageUrl: "https://images.unsplash.com/photo-1543821731-15fe9aa37576?q=80&w=800&auto=format&fit=crop",
-        status: "sent", date: "Feb 5th"
+        status: "sent", date: "Feb 5th",
+        analytics: mockAnalyticsStats
     },
     {
         month: 3, name: "March", subject: "Lente in je Bol! 🌷",
@@ -58,6 +75,7 @@ export default function DashboardPage() {
     const [isGenerating, setIsGenerating] = useState(false);
     const [campaigns, setCampaigns] = useState<any[]>([]); // Default to empty, wait for fetch
     const [selectedCampaign, setSelectedCampaign] = useState<any>(null);
+    const [selectedAnalytics, setSelectedAnalytics] = useState<any>(null);
     const [monthlyInstructions, setMonthlyInstructions] = useState<Record<number, string>>({});
     const [approvingCampaignId, setApprovingCampaignId] = useState<number | null>(null);
 
@@ -81,7 +99,8 @@ export default function DashboardPage() {
                 body: dbCamp.bodyText,
                 imageUrl: dbCamp.image_url,
                 status: dbCamp.status,
-                date: dbCamp.send_date
+                date: dbCamp.send_date,
+                analytics: dbCamp.status === 'sent' ? mockAnalyticsStats : undefined
             }));
             setCampaigns(mappedCampaigns);
         } else {
@@ -193,6 +212,29 @@ export default function DashboardPage() {
         }
     };
 
+    if (selectedCampaign) {
+        return (
+            <div className="w-full bg-[#f8f9fa] overflow-hidden p-6 -mt-8">
+                <EmailEditor
+                    campaign={selectedCampaign}
+                    onSave={async (updated) => {
+                        const supabase = createClient();
+                        if (updated.id) {
+                            await supabase.from('campaigns').update({
+                                subject: updated.subject,
+                                summary: updated.summary,
+                                bodyText: updated.body
+                            }).eq('id', updated.id);
+                        }
+                        fetchCampaigns();
+                        setSelectedCampaign(null);
+                    }}
+                    onCancel={() => setSelectedCampaign(null)}
+                />
+            </div>
+        );
+    }
+
     return (
         <div className="space-y-8">
             {/* Header Area */}
@@ -280,7 +322,7 @@ export default function DashboardPage() {
                                     <div className="flex flex-col items-center">
                                         <div className="flex items-center text-green-600 mb-1">
                                             <Eye className="w-3 h-3 mr-1" />
-                                            <span className="text-xs font-bold">58%</span>
+                                            <span className="text-xs font-bold">{camp.analytics?.openPercent || 58}%</span>
                                         </div>
                                         <span className="text-[10px] text-black/40 uppercase tracking-wider">Opened</span>
                                     </div>
@@ -312,6 +354,102 @@ export default function DashboardPage() {
                             </Badge>
 
                             <div className="flex items-center gap-2">
+                                {camp.status === 'sent' && (
+                                    <Dialog>
+                                        <DialogTrigger asChild>
+                                            <Button variant="ghost" size="icon" className="h-8 w-8 text-[#253551]/50 hover:text-[#253551] hover:bg-[#253551]/10 rounded-full" onClick={() => setSelectedAnalytics(camp)}>
+                                                <BarChart3 className="h-4 w-4" />
+                                            </Button>
+                                        </DialogTrigger>
+                                        {selectedAnalytics?.month === camp.month && (
+                                            <DialogContent className="sm:max-w-[800px] bg-[#f2f4f6] border-[#253551]/20 text-black rounded-lg p-0 overflow-hidden">
+                                                <DialogHeader className="border-b border-black/10 p-6 pb-4 bg-white relative">
+                                                    <div className="flex items-center justify-between">
+                                                        <DialogTitle className="text-xl font-medium text-[#111827] flex items-center gap-2">
+                                                            <span className="text-[#6B7280]">Campaigns</span>
+                                                            <span className="text-[#D1D5DB] font-light">/</span>
+                                                            <span className="flex items-center gap-2">🎉 {camp.subject}</span>
+                                                        </DialogTitle>
+                                                        <div className="text-xs text-[#6B7280]">Sent on Thursday 15 January at 12:05</div>
+                                                    </div>
+                                                </DialogHeader>
+
+                                                <div className="px-8 py-6 max-h-[70vh] overflow-y-auto">
+                                                    <div className="flex gap-6 border-b border-black/10 mb-8 font-medium text-sm">
+                                                        <div className="pb-3 border-b-2 border-blue-500 text-[#111827]">Statistics</div>
+                                                        <div className="pb-3 text-[#6B7280]">Recipients</div>
+                                                    </div>
+
+                                                    <div className="grid grid-cols-3 gap-12 mb-10">
+                                                        {/* Recipients */}
+                                                        <div>
+                                                            <div className="flex items-center justify-between text-xs font-semibold italic text-[#6B7280] mb-3">Recipients <HelpCircle className="w-3 h-3" /></div>
+                                                            <div className="text-4xl font-semibold mb-3 tracking-tight text-[#111827]">{camp.analytics?.recipients}</div>
+                                                            <div className="text-[11px] text-[#6B7280] flex items-center gap-2 font-medium">
+                                                                <span className="bg-[#E5E7EB]/50 px-2 py-0.5 rounded text-[#374151]">{camp.analytics?.deliveredPercent}%</span> delivered
+                                                            </div>
+                                                        </div>
+                                                        {/* Orders */}
+                                                        <div>
+                                                            <div className="flex items-center justify-between text-xs font-semibold italic text-[#6B7280] mb-3">Orders <HelpCircle className="w-3 h-3" /></div>
+                                                            <div className="text-4xl font-semibold mb-3 tracking-tight text-[#111827]">{camp.analytics?.orders}</div>
+                                                            <div className="text-[11px] text-[#6B7280] flex items-center gap-2 font-medium">
+                                                                <span className="bg-[#E5E7EB]/50 px-2 py-0.5 rounded text-[#374151]">€{camp.analytics?.revenue}</span> revenue
+                                                            </div>
+                                                        </div>
+                                                        {/* Unsubscribes */}
+                                                        <div>
+                                                            <div className="flex items-center justify-between text-xs font-semibold italic text-[#6B7280] mb-3">Unsubscribes <HelpCircle className="w-3 h-3" /></div>
+                                                            <div className="text-4xl font-semibold mb-3 tracking-tight text-[#111827]">{camp.analytics?.unsubscribes}</div>
+                                                            <div className="text-[11px] text-[#6B7280] flex items-center gap-2 font-medium">
+                                                                <span className="bg-[#E5E7EB]/50 px-2 py-0.5 rounded text-[#374151]">{camp.analytics?.unsubPercent} %</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="grid grid-cols-3 gap-12">
+                                                        {/* Opens & Visits */}
+                                                        <div className="flex flex-col gap-10">
+                                                            <div>
+                                                                <div className="flex items-center justify-between text-xs font-semibold italic text-[#6B7280] mb-3">Opens <HelpCircle className="w-3 h-3" /></div>
+                                                                <div className="text-4xl font-semibold mb-3 tracking-tight text-[#111827]">{camp.analytics?.opens}</div>
+                                                                <div className="text-[11px] text-[#6B7280] flex items-center gap-2 font-medium">
+                                                                    <span className="bg-[#E5E7EB]/50 px-2 py-0.5 rounded text-[#374151]">{camp.analytics?.openPercent} %</span>
+                                                                </div>
+                                                            </div>
+                                                            <div>
+                                                                <div className="flex items-center justify-between text-xs font-semibold italic text-[#6B7280] mb-3">Visits <HelpCircle className="w-3 h-3" /></div>
+                                                                <div className="text-4xl font-semibold mb-3 tracking-tight text-[#111827]">{camp.analytics?.visits}</div>
+                                                                <div className="text-[11px] text-[#6B7280] flex items-center gap-2 font-medium">
+                                                                    <span className="bg-[#E5E7EB]/50 px-2 py-0.5 rounded text-[#374151]">{camp.analytics?.visitsPercent} %</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Chart */}
+                                                        <div className="col-span-2">
+                                                            <div className="flex items-center justify-between text-xs font-semibold italic text-[#6B7280] mb-6">Opens in first 20 hours <HelpCircle className="w-3 h-3" /></div>
+                                                            <div className="h-[220px] flex items-end gap-[6px] border-b border-l border-[#D1D5DB] pb-1 pl-2 relative ml-6">
+                                                                {/* Y axis labels */}
+                                                                <div className="absolute -left-7 bottom-0 h-full flex flex-col justify-between text-[10px] text-[#9CA3AF] py-1">
+                                                                    <span>800</span><span>600</span><span>400</span><span>200</span><span className="opacity-0">0</span>
+                                                                </div>
+                                                                {/* Null baseline */}
+                                                                <div className="absolute -left-4 -bottom-[6px] text-[10px] text-[#9CA3AF]">0</div>
+
+                                                                {camp.analytics?.hourlyOpens.map((count: number, i: number) => (
+                                                                    <div key={i} className="flex-1 bg-[#1877F2] hover:bg-[#1877F2]/80 transition-colors flex flex-col justify-end group relative rounded-t-[1px]" style={{ height: `${Math.max(1, (count / 800) * 100)}%` }}>
+                                                                        <div className="absolute -bottom-5 w-full text-center text-[9px] text-[#9CA3AF]">{i}</div>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </DialogContent>
+                                        )}
+                                    </Dialog>
+                                )}
                                 {camp.status === 'draft' && (
                                     <Button
                                         size="sm"
@@ -322,52 +460,9 @@ export default function DashboardPage() {
                                         {approvingCampaignId === camp.month ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Approve'}
                                     </Button>
                                 )}
-                                <Dialog>
-                                    <DialogTrigger asChild>
-                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-[#253551]/50 hover:text-[#253551] hover:bg-[#253551]/10 rounded-full" onClick={() => setSelectedCampaign(camp)}>
-                                            <Edit3 className="h-4 w-4" />
-                                        </Button>
-                                    </DialogTrigger>
-                                    {selectedCampaign?.month === camp.month && (
-                                        <DialogContent className="sm:max-w-[600px] bg-white border-[#253551]/20 text-black">
-                                            <DialogHeader>
-                                                <DialogTitle className="text-[#253551]">Edit {camp.name} Campaign</DialogTitle>
-                                                <DialogDescription className="text-black/60">
-                                                    Make specialized changes. If you do nothing, we will automatically send the AI-generated version.
-                                                </DialogDescription>
-                                            </DialogHeader>
-
-                                            <div className="grid gap-6 py-4">
-                                                <div className="grid gap-3">
-                                                    <Label htmlFor="subject" className="text-[#253551] font-medium">Subject Line</Label>
-                                                    <Input id="subject" defaultValue={camp.subject} className="bg-white text-black border-[#253551]/20 focus-visible:ring-1 focus-visible:ring-[#253551]" />
-                                                </div>
-
-                                                <div className="grid gap-3">
-                                                    <Label htmlFor="image" className="text-[#253551] font-medium">Feature Image (Optional replacement)</Label>
-                                                    <div className="border-2 border-dashed border-[#253551]/20 rounded-xl p-8 text-center hover:bg-[#253551]/5 transition-colors cursor-pointer group flex flex-col items-center bg-slate-50/50">
-                                                        <ImageIcon className="h-6 w-6 text-[#253551]/50 mb-2 group-hover:text-[#253551] transition-colors" />
-                                                        <span className="text-sm text-black/50">Click to upload custom image</span>
-                                                    </div>
-                                                </div>
-
-                                                <div className="grid gap-3">
-                                                    <Label htmlFor="body" className="text-[#253551] font-medium">Email Body</Label>
-                                                    <Textarea
-                                                        id="body"
-                                                        defaultValue={camp.body || `Hey there,\n\n${camp.summary}\n\nBook your table now via our website.\n\nCheers,\n[Your Restaurant]`}
-                                                        className="min-h-[150px] bg-white text-black border-[#253551]/20 focus-visible:ring-1 focus-visible:ring-[#253551]"
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            <DialogFooter>
-                                                <Button variant="outline" className="border-[#253551]/20 bg-white text-[#253551] hover:bg-slate-50">Cancel</Button>
-                                                <Button className="bg-[#253551] text-white hover:bg-[#253551]/90 shadow-sm">Save Changes</Button>
-                                            </DialogFooter>
-                                        </DialogContent>
-                                    )}
-                                </Dialog>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 text-[#253551]/50 hover:text-[#253551] hover:bg-[#253551]/10 rounded-full" onClick={() => setSelectedCampaign(camp)}>
+                                    <Edit3 className="h-4 w-4" />
+                                </Button>
                             </div>
                         </CardFooter>
                     </Card>

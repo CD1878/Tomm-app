@@ -57,6 +57,11 @@ export async function updateSession(request: NextRequest) {
     // Fetch user from Supabase to refresh auth token if needed
     const { data: { user } } = await supabase.auth.getUser()
 
+    // TEMPORARY BYPASS FOR LOCAL UI TESTING
+    if (process.env.NODE_ENV === 'development') {
+        return supabaseResponse;
+    }
+
     // Protect all routes inside /(dashboard)
     if (
         !user &&
