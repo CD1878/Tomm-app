@@ -77,6 +77,70 @@ export default function SettingsPage() {
         localStorage.setItem('tomm_demo_subscribers', JSON.stringify(updatedSubs));
     };
 
+    const processCSV = async (file: File) => {
+        if (!file) return;
+        setUploadingCSV(true);
+
+        try {
+            const text = await file.text();
+            // Basic CSV parsing to find emails
+            const lines = text.split('\n');
+            const newEmails: string[] = [];
+
+            lines.forEach(line => {
+                const parts = line.split(/[;,]/);
+                parts.forEach(part => {
+                    const cleaned = part.trim().replace(/^"|"$/g, '');
+                    // Basic email regex match
+                    if (cleaned.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+                        newEmails.push(cleaned);
+                    }
+                });
+            });
+
+            if (newEmails.length > 0) {
+                // Deduplicate and format
+                const uniqueEmails = Array.from(new Set(newEmails));
+                const newSubs = uniqueEmails.map(email => ({
+                    email,
+                    source: "CSV Import",
+                    date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                }));
+
+                const updatedSubs = [...newSubs, ...subscribers];
+                // Deduplicate against existing subscribers
+                const finalSubs = Array.from(new Map(updatedSubs.map(item => [item.email, item])).values());
+
+                setSubscribers(finalSubs);
+                localStorage.setItem('tomm_demo_subscribers', JSON.stringify(finalSubs));
+            }
+
+            setUploadedCSV(true);
+            setTimeout(() => setUploadedCSV(false), 3000);
+        } catch (error) {
+            console.error("Error parsing CSV:", error);
+        } finally {
+            setUploadingCSV(false);
+        }
+    };
+
+    const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        const file = e.dataTransfer.files?.[0];
+        if (file && (file.type === "text/csv" || file.name.endsWith(".csv"))) {
+            processCSV(file);
+        }
+    };
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            processCSV(file);
+        }
+        // Reset input so the same file could be selected again if needed
+        e.target.value = '';
+    };
+
     const handleScrape = async () => {
         setIsScraping(true);
         setScrapeSuccess(false);
@@ -102,6 +166,9 @@ export default function SettingsPage() {
 
             if (data.success && data.markdown) {
                 localStorage.setItem('tomm_business_context', data.markdown);
+                if (data.reservationUrl) {
+                    localStorage.setItem('tomm_reservation_url', data.reservationUrl);
+                }
                 setScrapeSuccess(true);
                 setTimeout(() => setScrapeSuccess(false), 3000);
             } else {
@@ -248,23 +315,25 @@ export default function SettingsPage() {
                         </CardHeader>
                         <CardContent>
                             <div
-                                onClick={() => {
-                                    setUploadingCSV(true);
-                                    setTimeout(() => {
-                                        setUploadingCSV(false);
-                                        setUploadedCSV(true);
-                                        setTimeout(() => setUploadedCSV(false), 3000);
-                                    }, 1500);
-                                }}
+                                onClick={() => document.getElementById('csv-upload')?.click()}
+                                onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                                onDrop={handleDrop}
                                 className="border-2 border-dashed border-[#253551]/20 rounded-xl p-12 text-center hover:bg-[#253551]/5 transition-colors cursor-pointer group bg-slate-50/50"
                             >
+                                <input
+                                    type="file"
+                                    id="csv-upload"
+                                    accept=".csv"
+                                    className="hidden"
+                                    onChange={handleChange}
+                                />
                                 <div className="h-12 w-12 bg-white shadow-sm rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
                                     {uploadingCSV ? <Loader2 className="h-6 w-6 text-[#253551] animate-spin" /> :
                                         uploadedCSV ? <CheckCircle2 className="h-6 w-6 text-green-500" /> :
                                             <Upload className="h-6 w-6 text-[#253551] group-hover:text-[#253551]/80 transition-colors" />}
                                 </div>
                                 <h3 className="text-lg font-medium text-[#253551] mb-1">
-                                    {uploadingCSV ? "Uploading..." : uploadedCSV ? "Successfully uploaded!" : "Click to upload CSV"}
+                                    {uploadingCSV ? "Processing CSV..." : uploadedCSV ? "Successfully uploaded!" : "Click to upload CSV"}
                                 </h3>
                                 <p className="text-sm text-black/50">or drag and drop your exported guest list here</p>
                             </div>

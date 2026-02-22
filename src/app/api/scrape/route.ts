@@ -22,7 +22,7 @@ export async function POST(request: Request) {
             },
             body: JSON.stringify({
                 url: url,
-                formats: ['markdown'],
+                formats: ['markdown', 'links'],
             }),
         });
 
@@ -34,10 +34,24 @@ export async function POST(request: Request) {
         const data = await response.json();
 
         if (data && data.success && data.data) {
+            let reservationUrl = '';
+
+            // Try to find a reservation platform link from the extracted links
+            if (data.data.links && Array.isArray(data.data.links)) {
+                // Common reservation platforms and keywords
+                const reservationRegex = /(formitable\.com|resengo\.com|zenchef\.com|tebi\.com|guestplan\.com|thefork\.com|book|reserveer|reservation)/i;
+                const foundLink = data.data.links.find((link: string) => reservationRegex.test(link) && link.startsWith('http'));
+                if (foundLink) {
+                    reservationUrl = foundLink;
+                }
+            }
+
             return NextResponse.json({
                 success: true,
                 markdown: data.data.markdown,
-                metadata: data.data.metadata
+                metadata: data.data.metadata,
+                links: data.data.links,
+                reservationUrl: reservationUrl
             });
         }
 

@@ -28,6 +28,7 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
     const [isTranslating, setIsTranslating] = useState(false);
     const [expandedPlus, setExpandedPlus] = useState<number | null>(null);
     const [isEditingText, setIsEditingText] = useState(false);
+    const [reservationUrl, setReservationUrl] = useState("");
 
     // Track dynamically added blocks
     const [blocks, setBlocks] = useState<{ id: string; type: string; label?: string; content?: string }[]>([]);
@@ -178,6 +179,11 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
                 { id: 'static-reserve', type: 'static-reserve' }
             ]);
         }
+
+        const storedUrl = localStorage.getItem('tomm_reservation_url');
+        if (storedUrl) {
+            setReservationUrl(storedUrl);
+        }
     }, []);
 
     return (
@@ -281,7 +287,17 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
                                         <p className="text-[#374151] mb-6 leading-relaxed">
                                             Een reservering bij ons is een belofte voor een geweldige tijd. Geweldig voor jou én je tafelgenoten.
                                         </p>
-                                        <Button onClick={(e) => { e.currentTarget.innerText = "Geklikt!"; setTimeout(() => { if (e.currentTarget) e.currentTarget.innerText = "Reserveer nu" }, 1500); }} className="bg-[#1f2937] text-white hover:bg-black px-8 py-6 rounded-md font-semibold font-sans transition-all">
+                                        <Button
+                                            onClick={(e) => {
+                                                if (reservationUrl) {
+                                                    window.open(reservationUrl, '_blank');
+                                                } else {
+                                                    e.currentTarget.innerText = "Link ontbreekt!";
+                                                    setTimeout(() => { if (e.currentTarget) e.currentTarget.innerText = "Reserveer nu" }, 1500);
+                                                }
+                                            }}
+                                            className="bg-[#1f2937] text-white hover:bg-black px-8 py-6 rounded-md font-semibold font-sans transition-all"
+                                        >
                                             Reserveer nu
                                         </Button>
                                     </div>
