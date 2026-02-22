@@ -13,6 +13,9 @@ import { motion } from "framer-motion"
 export default function SettingsPage() {
     const [isScraping, setIsScraping] = useState(false);
     const [scrapeSuccess, setScrapeSuccess] = useState(false);
+    const [scrapeError, setScrapeError] = useState("");
+    const [websiteUrl, setWebsiteUrl] = useState("https://www.cafehetpaardje.nl/");
+    const [instagramUrl, setInstagramUrl] = useState("https://www.instagram.com/paardcafe/?hl=nl");
     const [instructions, setInstructions] = useState("");
     const [defaultLanguage, setDefaultLanguage] = useState("NL");
     const [newEmail, setNewEmail] = useState("");
@@ -74,24 +77,42 @@ export default function SettingsPage() {
         localStorage.setItem('tomm_demo_subscribers', JSON.stringify(updatedSubs));
     };
 
-    const handleScrape = () => {
+    const handleScrape = async () => {
         setIsScraping(true);
         setScrapeSuccess(false);
+        setScrapeError("");
 
         // Save global instructions to local storage for the dashboard to use
         localStorage.setItem('tomm_global_instructions', instructions);
         localStorage.setItem('tomm_default_language', defaultLanguage);
+        localStorage.setItem('tomm_website_url', websiteUrl);
 
-        // Simulate API call to scrape
-        setTimeout(() => {
+        try {
+            const response = await fetch('/api/scrape', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url: websiteUrl })
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to scrape website.");
+            }
+
+            const data = await response.json();
+
+            if (data.success && data.markdown) {
+                localStorage.setItem('tomm_business_context', data.markdown);
+                setScrapeSuccess(true);
+                setTimeout(() => setScrapeSuccess(false), 3000);
+            } else {
+                throw new Error("Invalid response from scraper.");
+            }
+        } catch (error: any) {
+            console.error("Scrape error:", error);
+            setScrapeError(error.message || "Something went wrong collecting business context.");
+        } finally {
             setIsScraping(false);
-            setScrapeSuccess(true);
-
-            // Reset success message after 3 seconds
-            setTimeout(() => {
-                setScrapeSuccess(false);
-            }, 3000);
-        }, 2500);
+        }
     };
 
     return (
@@ -132,7 +153,8 @@ export default function SettingsPage() {
                                     <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-black/40 group-focus-within:text-[#253551] transition-colors" />
                                     <Input
                                         id="website"
-                                        defaultValue="https://www.cafehetpaardje.nl/"
+                                        value={websiteUrl}
+                                        onChange={(e) => setWebsiteUrl(e.target.value)}
                                         className="pl-10 bg-white border-[#253551]/20 focus-visible:ring-1 focus-visible:ring-[#253551] text-black placeholder:text-black/40 h-11"
                                     />
                                 </div>
@@ -144,7 +166,8 @@ export default function SettingsPage() {
                                     <Instagram className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-black/40 group-focus-within:text-[#253551] transition-colors" />
                                     <Input
                                         id="instagram"
-                                        defaultValue="https://www.instagram.com/paardcafe/?hl=nl"
+                                        value={instagramUrl}
+                                        onChange={(e) => setInstagramUrl(e.target.value)}
                                         className="pl-10 bg-white border-[#253551]/20 focus-visible:ring-1 focus-visible:ring-[#253551] text-black placeholder:text-black/40 h-11"
                                     />
                                 </div>
@@ -176,25 +199,34 @@ export default function SettingsPage() {
                             </div>
                         </CardContent>
                         <CardFooter className="border-t border-[#253551]/10 bg-slate-50 mt-4 py-4 flex items-center justify-between">
-                            <Button
-                                onClick={handleScrape}
-                                disabled={isScraping}
-                                className="w-full sm:w-auto bg-[#253551] text-white hover:bg-[#253551]/90 shadow-sm transition-all"
-                            >
-                                {isScraping ? (
-                                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Scraping Data...</>
-                                ) : scrapeSuccess ? (
-                                    <><CheckCircle2 className="mr-2 h-4 w-4 text-green-400" /> Successfully Scraped</>
-                                ) : (
-                                    <><RefreshCw className="mr-2 h-4 w-4" /> Save & Start Scraping</>
-                                )}
-                            </Button>
+                            <div className="flex flex-col gap-2 w-full">
+                                <div className="flex items-center justify-between w-full">
+                                    <Button
+                                        onClick={handleScrape}
+                                        disabled={isScraping || !websiteUrl}
+                                        className="w-full sm:w-auto bg-[#253551] text-white hover:bg-[#253551]/90 shadow-sm transition-all"
+                                    >
+                                        {isScraping ? (
+                                            <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Scraping Data...</>
+                                        ) : scrapeSuccess ? (
+                                            <><CheckCircle2 className="mr-2 h-4 w-4 text-green-400" /> Successfully Scraped</>
+                                        ) : (
+                                            <><RefreshCw className="mr-2 h-4 w-4" /> Save & Start Scraping</>
+                                        )}
+                                    </Button>
 
-                            {scrapeSuccess && (
-                                <span className="text-sm font-medium text-green-600 animate-in fade-in zoom-in duration-300">
-                                    Branding updated!
-                                </span>
-                            )}
+                                    {scrapeSuccess && (
+                                        <span className="text-sm font-medium text-green-600 animate-in fade-in zoom-in duration-300">
+                                            Branding updated!
+                                        </span>
+                                    )}
+                                </div>
+                                {scrapeError && (
+                                    <span className="text-sm font-medium text-red-500 animate-in fade-in zoom-in duration-300">
+                                        {scrapeError}
+                                    </span>
+                                )}
+                            </div>
                         </CardFooter>
                     </Card>
                 </TabsContent>
