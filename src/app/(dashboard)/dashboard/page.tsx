@@ -31,12 +31,21 @@ const mockAnalyticsStats = {
     hourlyOpens: [710, 180, 110, 60, 80, 40, 40, 40, 45, 30, 70, 82, 15, 12, 5, 2, 2, 2, 8, 2]
 };
 
+const realImages = [
+    "https://images.squarespace-cdn.com/content/v1/65b3b1379d0e202bc26a0b09/5b1ff710-b81a-4132-b50f-8589c6a631de/DSC00810-2_websize.jpg",
+    "https://images.squarespace-cdn.com/content/v1/65b3b1379d0e202bc26a0b09/ff73eda5-b2d5-46a6-a910-25c88ad5262f/DSC08779-2_websize%2B%281%29+%281%29.jpg",
+    "https://images.squarespace-cdn.com/content/v1/65b3b1379d0e202bc26a0b09/95febe77-37bb-46a9-810b-8120e14c4739/DSC03801_websize.jpg",
+    "https://images.squarespace-cdn.com/content/v1/65b3b1379d0e202bc26a0b09/ce6ecc45-efdf-4fc0-bb13-b42ebef77a7d/DSC00826-2.jpg",
+    "https://images.squarespace-cdn.com/content/v1/65b3b1379d0e202bc26a0b09/01137d2c-189c-43f6-a2e9-4b448a8ed2b8/DSC01758-2_websize.jpg",
+    "https://images.squarespace-cdn.com/content/v1/65b3b1379d0e202bc26a0b09/07c676db-042e-4bdd-8ccf-d75a8e7afd07/DSC06246.jpg"
+];
+
 const mockCampaigns = [
     {
         month: 1, name: "January", subject: "Een Gezond Begin bij Café Het Paardje 🐴",
         summary: "Highlighting dry january specials like our 0.0% beers and healthy lunch wraps.",
         body: "Lieve gasten,\n\nNa al die feestdagen snappen we dat januari best pittig kan zijn. Tijd voor een fris en gezond begin!\n\nDaarom hebben we deze maand speciale Dry January mocktails en extra veel lichte, gezonde lunchopties aan ons menu toegevoegd. Kom gezellig langs om toch de sfeer van Het Paardje te ervaren, maar dan helemaal zen.\n\nZien we jullie snel?\n\nLiefs,\nTeam Het Paardje",
-        imageUrl: "https://images.unsplash.com/photo-1544145945-f90425340c7e?q=80&w=800&auto=format&fit=crop",
+        imageUrl: realImages[0],
         status: "sent", date: "Jan 5th",
         analytics: mockAnalyticsStats
     },
@@ -44,7 +53,7 @@ const mockCampaigns = [
         month: 2, name: "February", subject: "Liefde & Gezelligheid: Valentine's Day ♥️",
         summary: "Promoting our cozy corner tables and special Valentine's sharing platters.",
         body: "Hey geliefden en vriendschappen,\n\nFebruari staat in het teken van de liefde! Of je nu je partner wilt verrassen of gewoon met je beste vrienden wil proosten, bij ons zit je goed.\n\nWe hebben speciale 'Sharing Platters' samengesteld: heerlijke hapjes om samen te delen onder het genot van een goed glas wijn of speciaalbier.\n\nReserveer snel jullie vaste hoekje online!\n\nProost,\nTeam Het Paardje",
-        imageUrl: "https://images.unsplash.com/photo-1543821731-15fe9aa37576?q=80&w=800&auto=format&fit=crop",
+        imageUrl: realImages[1],
         status: "sent", date: "Feb 5th",
         analytics: mockAnalyticsStats
     },
@@ -52,70 +61,70 @@ const mockCampaigns = [
         month: 3, name: "March", subject: "Lente in je Bol! 🌷",
         summary: "First sunny days on the Gerard Douplein terrace. Get ready!",
         body: "Hi allemaal,\n\nVoelen jullie het ook? De dagen worden langer en de zon laat zich weer vaker zien op het Gerard Douplein!\n\nOns terras wordt langzaam weer de warmste plek van De Pijp. Hoog tijd om die winterjas thuis te laten en te genieten van de eerste échte zonnestralen met een ijskoud biertje in je hand.\n\nTot snel op het terras!\n\nLiefs,\nTeam Het Paardje",
-        imageUrl: "https://images.unsplash.com/photo-1527018263385-7ba6ab512ea6?q=80&w=800&auto=format&fit=crop",
+        imageUrl: realImages[2],
         status: "scheduled", date: "Mar 5th"
     },
     {
         month: 4, name: "April", subject: "Paasbrunch bij Het Paardje 🐰",
         summary: "Family brunch specials and extended opening hours for the Easter weekend.",
         body: "Vrolijk Pasen!\n\nHebben jullie al plannen voor het paasweekend? Bij Het Paardje pakken we dit jaar lekker uit met een uitgebreide Paasbrunch.\n\nVerwacht verse eitjes, huisgemaakte baksels en natuurlijk de gezelligste sfeer van Amsterdam. Perfect voor de hele familie.\n\nVergeet niet tijdig een tafeltje veilig te stellen via onze website.\n\nGroetjes,\nTeam Het Paardje",
-        imageUrl: "https://images.unsplash.com/photo-1554522435-081033b00c9e?q=80&w=800&auto=format&fit=crop",
+        imageUrl: realImages[3],
         status: "scheduled", date: "Apr 5th"
     },
     {
         month: 5, name: "May", subject: "Zon, Bier & Bitterballen ☀️",
         summary: "Official terrace season kick-off party announcement. Cold beers waiting.",
         body: "Hallo zonaanbidders,\n\nEindelijk is het zover: het officiële terrasseizoen is geopend! We hebben de parasols uitgeklapt, de fusten zijn koud gelegd, en de bitterballen liggen klaar voor de frituur.\n\nKom na werk lekker borrelen in het heerlijke lentezonnetje. De eerste ronde bitterballen is op onze kosten als je via deze mail reserveert!\n\nProost,\nTeam Het Paardje",
-        imageUrl: "https://images.unsplash.com/photo-1538332576228-eb5b4c4de6f5?q=80&w=800&auto=format&fit=crop",
+        imageUrl: realImages[4],
         status: "scheduled", date: "May 5th"
     },
     {
         month: 6, name: "June", subject: "Nieuwe Zomerse Lunchkaart 🥪",
         summary: "Introducing the new lightweight summer menu items and fresh salads.",
         body: "Beste gasten,\n\nMet het warme weer hebben we de menukaart vernieuwd! Ontdek onze gloednieuwe frisse salades, lichte lunchgerechten en ijskoude huisgemaakte limonades.\n\nPerfect voor een snelle zakenlunch of een lange, lome middag op het plein. Let op: we serveren nu ook de populaire Burrata Sandwich!\n\nZien we je rond de lunch?\n\nGroet,\nHet Paardje",
-        imageUrl: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=800&auto=format&fit=crop",
+        imageUrl: realImages[5],
         status: "scheduled", date: "Jun 5th"
     },
     {
         month: 7, name: "July", subject: "Verkoeling op het Terras 🧊",
         summary: "Highlighting the refreshing craft beers and cold drinks to beat the heat.",
         body: "Poeh, wat een hitte!\n\nAls de mussen van het dak vallen, is er maar één plek in Amsterdam waar het wél uit te houden is: onder onze grote markies met een ijskoude speciaal Weizen in je hand.\n\nWe hebben nieuwe zomerbieren op tap én verse Aperol Spritz klaarstaan. Kom lekker bij ons afkoelen.\n\nTot vanmiddag!\n\nLiefs,\nTeam Het Paardje",
-        imageUrl: "https://images.unsplash.com/photo-1563227812-0ea4c22e6b26?q=80&w=800&auto=format&fit=crop",
+        imageUrl: realImages[0],
         status: "scheduled", date: "Jul 5th"
     },
     {
         month: 8, name: "August", subject: "Laatste Zomerdagen: Borreltijd 🍻",
         summary: "Promoting extended evening kitchen hours for those late summer drinks.",
         body: "Hi Borrelaars,\n\nAugustus! De avonden zijn nog lang en heerlijk zwoel. Om dit maximale uit de zomer te halen, blijft onze keuken deze hele maand extra laat open tijdens de weekenden!\n\nZin in nog een late snack na je drankjes? Wij got you covered met onze heerlijke borrelhappen.\n\nZien we je vanavond?\n\nGroetjes,\nHet Paardje",
-        imageUrl: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?q=80&w=800&auto=format&fit=crop",
+        imageUrl: realImages[1],
         status: "scheduled", date: "Aug 5th"
     },
     {
         month: 9, name: "September", subject: "Herfst in De Pijp 🍂",
         summary: "Transitioning to hearty, warm autumn dishes and rich bockbeers.",
         body: "Beste vrienden,\n\nDe blaadjes verkleuren en de herfst doet officieel zijn intrede in De Pijp. Tijd om het binnen weer ouderwets gezellig te maken!\n\nWe trappen de herfst af met ons nieuwe bockbier menu. Rijke, donkere bieren die perfect passen bij onze warme bites en het knisperende geroezemoes binnen.\n\nKom gezellig met je vrienden de warmte opzoeken.\n\nLiefs,\nTeam Het Paardje",
-        imageUrl: "https://images.unsplash.com/photo-1534349735944-2b3a6f7a18bb?q=80&w=800&auto=format&fit=crop",
+        imageUrl: realImages[2],
         status: "scheduled", date: "Sep 5th"
     },
     {
         month: 10, name: "October", subject: "Halloween Borrel & Bites 🎃",
         summary: "Special themed snacks and cozy vibes during the colder October days.",
         body: "Boo!\n\nHet is de griezeligste tijd van het jaar, maar bij ons is het natuurlijk alsnog altijd hartstikke knus.\n\nRondom Halloween serveren we speciale 'spooky' cocktails en pompoen bites. Kom gezellig in de stemming met je vrienden, the meer zielen, the meer vreugd!\n\nTrek je leukste outfit aan, of kom gewoon lekker zoals je bent.\n\nTot snel!\n\nLiefs,\nTeam Het Paardje",
-        imageUrl: "https://images.unsplash.com/photo-1505934333218-8feae223edeb?q=80&w=800&auto=format&fit=crop",
+        imageUrl: realImages[3],
         status: "scheduled", date: "Oct 5th"
     },
     {
         month: 11, name: "November", subject: "Vier de Feestdagen bij Ons 🥂",
         summary: "Pushing group reservations and corporate end-of-year drinks.",
         body: "Beste relaties en stamgasten,\n\nDe decembermaand komt sneller dichterbij dan je denkt! Heb je de eindejaarsborrel voor je bedrijf, vriendengroep of sportteam al gepland?\n\nBij Het Paardje verzorgen we compleet geregelde borrels op maat, inclusief heerlijke happen en drankjes. Voorkom stress en reserveer nu alvast jullie plekje voordat we vol zitten.\n\nNeem contact op voor de mogelijkheden.\n\nProost,\nTeam Het Paardje",
-        imageUrl: "https://images.unsplash.com/photo-1511556820780-d912e42b4980?q=80&w=800&auto=format&fit=crop",
+        imageUrl: realImages[4],
         status: "scheduled", date: "Nov 5th"
     },
     {
         month: 12, name: "December", subject: "Fijne Feestdagen vanuit Het Paardje ✨",
         summary: "Christmas greetings and New Year's Eve special drinking packages.",
         body: "Lieve gasten,\n\nWat een waanzinnig gezellig jaar hebben we weer samen gehad op het Gerard Douplein! Namens het hele team willen we jullie enorm bedanken voor jullie komst, mooie verhalen en de topsfeer.\n\nWe wensen iedereen fantastische, warme feestdagen. En vergeet niet: we zijn open tijdens Oud & Nieuw voor de echte buurtborrel!\n\nOp een prachtig 2027!\n\nLiefs,\nTeam Het Paardje",
-        imageUrl: "https://images.unsplash.com/photo-1543269865-cbf427effbad?q=80&w=800&auto=format&fit=crop",
+        imageUrl: realImages[5],
         status: "draft", date: "Dec 5th"
     },
 ];
