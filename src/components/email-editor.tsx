@@ -32,6 +32,11 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
 
     const [isTesting, setIsTesting] = useState(false);
     const [testSuccess, setTestSuccess] = useState(false);
+    const [testEmail, setTestEmail] = useState("info@jouwrestaurant.nl");
+    const [isEditingTestEmail, setIsEditingTestEmail] = useState(false);
+    const [audience, setAudience] = useState("All Subscribers");
+    const [isEditingAudience, setIsEditingAudience] = useState(false);
+
     const [isSaving, setIsSaving] = useState(false);
     const [saveSuccess, setSaveSuccess] = useState(false);
 
@@ -250,7 +255,7 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
                                     <div className="px-8 mt-8 mb-4">
                                         <h3 className="text-xl font-bold text-[#111827] mb-4">Reserveer nu een tafel</h3>
                                         <p className="text-[#374151] mb-6 leading-relaxed">
-                                            Een reservering bij ons is een belofte voor een geweldig avondje uit. Geweldig voor jou én je tafelgenoten.
+                                            Een reservering bij ons is een belofte voor een geweldige tijd. Geweldig voor jou én je tafelgenoten.
                                         </p>
                                         <Button onClick={(e) => { e.currentTarget.innerText = "Geklikt!"; setTimeout(() => { if (e.currentTarget) e.currentTarget.innerText = "Reserveer nu" }, 1500); }} className="bg-[#1f2937] text-white hover:bg-black px-8 py-6 rounded-md font-semibold font-sans transition-all">
                                             Reserveer nu
@@ -381,21 +386,74 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
                             {isTesting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : testSuccess ? <CheckCircle2 className="mr-2 h-4 w-4" /> : null}
                             {isTesting ? "Sending..." : testSuccess ? "Test e-mail sent!" : "Send a test email"}
                         </Button>
-                        <div className="text-center text-sm font-light text-[#6B7280]">
+                        <div className="text-center text-sm font-light text-[#6B7280] min-h-[48px] flex flex-col items-center justify-center">
                             Test emails will be sent to<br />
-                            <span className="underline decoration-black/20 underline-offset-4">info@jouwrestaurant.nl</span>.<br />
-                            <span onClick={(e) => { e.currentTarget.innerText = "Email changed!"; setTimeout(() => e.currentTarget.innerText = "Change", 1500); }} className="underline decoration-black/20 underline-offset-4 cursor-pointer mt-1 inline-block transition-all">Change</span>
+                            {isEditingTestEmail ? (
+                                <div className="flex items-center mt-2 gap-2">
+                                    <Input
+                                        type="email"
+                                        value={testEmail}
+                                        onChange={(e) => setTestEmail(e.target.value)}
+                                        className="h-8 text-sm"
+                                        autoFocus
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') setIsEditingTestEmail(false);
+                                        }}
+                                    />
+                                    <Button
+                                        size="sm"
+                                        onClick={() => setIsEditingTestEmail(false)}
+                                        className="h-8 bg-[#111827] text-white hover:bg-black"
+                                    >
+                                        Save
+                                    </Button>
+                                </div>
+                            ) : (
+                                <>
+                                    <span className="font-semibold text-[#111827]">{testEmail}</span>.<br />
+                                    <span
+                                        onClick={() => setIsEditingTestEmail(true)}
+                                        className="underline decoration-black/20 underline-offset-4 cursor-pointer mt-1 inline-block hover:text-[#111827] transition-all"
+                                    >
+                                        Change
+                                    </span>
+                                </>
+                            )}
                         </div>
                     </div>
 
                     <div className="mt-auto space-y-4 pt-8">
                         <Label className="text-xs font-bold text-[#111827] uppercase tracking-wider">Audience</Label>
-                        <Button onClick={(e) => { const orig = e.currentTarget.innerText; e.currentTarget.innerText = "Loading audience..."; setTimeout(() => e.currentTarget.innerText = orig, 1000); }} variant="secondary" className="w-full bg-[#F3F4F6] hover:bg-[#E5E7EB] text-[#4B5563] border-none py-6 font-semibold shadow-none rounded-md">
-                            Edit audience
-                        </Button>
-                        <Button variant="secondary" className="w-full bg-[#f8f9fa] hover:bg-[#F3F4F6] text-[#9CA3AF] border-none py-6 font-medium shadow-none rounded-md cursor-not-allowed">
-                            Show audience (0 subscribers)
-                        </Button>
+
+                        {isEditingAudience ? (
+                            <div className="space-y-3">
+                                <div className="p-3 border rounded-md bg-white border-blue-500 cursor-pointer shadow-sm">
+                                    <div className="font-medium text-blue-600 flex items-center justify-between">
+                                        All Subscribers <CheckCircle2 className="h-4 w-4" />
+                                    </div>
+                                    <div className="text-xs text-black/60 mt-1">Send to everyone on your list</div>
+                                </div>
+                                <div className="p-3 border rounded-md bg-white cursor-pointer hover:border-black/30 transition-colors" onClick={() => { setAudience("Recent Diners"); setIsEditingAudience(false); }}>
+                                    <div className="font-medium text-[#111827]">Recent Diners</div>
+                                    <div className="text-xs text-black/60 mt-1">Guests who visited in the last 30 days</div>
+                                </div>
+                                <div className="p-3 border rounded-md bg-white cursor-pointer hover:border-black/30 transition-colors" onClick={() => { setAudience("VIP Members"); setIsEditingAudience(false); }}>
+                                    <div className="font-medium text-[#111827]">VIP Members</div>
+                                    <div className="text-xs text-black/60 mt-1">Frequent guests and big spenders</div>
+                                </div>
+                                <Button onClick={() => setIsEditingAudience(false)} variant="ghost" className="w-full text-xs">Cancel</Button>
+                            </div>
+                        ) : (
+                            <>
+                                <Button onClick={() => setIsEditingAudience(true)} variant="outline" className="w-full bg-white hover:bg-slate-50 border-black/10 text-[#111827] py-6 font-semibold shadow-sm rounded-md justify-between px-4">
+                                    <span>{audience}</span>
+                                    <span className="text-blue-600 text-xs bg-blue-50 px-2 py-1 rounded-full">Edit</span>
+                                </Button>
+                                <div className="bg-[#f8f9fa] text-center text-[#9CA3AF] py-3 rounded-md text-sm">
+                                    {audience === "All Subscribers" ? "1,248 subscribers" : audience === "Recent Diners" ? "342 subscribers" : "89 subscribers"}
+                                </div>
+                            </>
+                        )}
                     </div>
 
                 </div>
@@ -406,7 +464,7 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
                         {isSaving ? "Saving..." : saveSuccess ? "Saved Successfully!" : "Review and send"}
                     </Button>
                     <div className="text-center text-xs text-[#9CA3AF] font-light">
-                        Send your campaign to 0 subscribers
+                        Send your campaign to {audience === "All Subscribers" ? "1,248" : audience === "Recent Diners" ? "342" : "89"} subscribers
                     </div>
                 </div>
 
