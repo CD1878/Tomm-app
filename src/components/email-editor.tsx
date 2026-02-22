@@ -37,6 +37,7 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
     const [testSuccess, setTestSuccess] = useState(false);
     const [testEmail, setTestEmail] = useState("info@jouwrestaurant.nl");
     const [isEditingTestEmail, setIsEditingTestEmail] = useState(false);
+    const [subscriberCount, setSubscriberCount] = useState(0);
     const [audience, setAudience] = useState("All Subscribers");
     const [isEditingAudience, setIsEditingAudience] = useState(false);
 
@@ -211,6 +212,18 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
         if (storedUrl) {
             // Ensure URL has protocol
             setWebsiteUrl(storedUrl.startsWith('http') ? storedUrl : `https://${storedUrl}`);
+        }
+
+        const savedSubs = localStorage.getItem('tomm_demo_subscribers');
+        if (savedSubs) {
+            try {
+                const parsedSubs = JSON.parse(savedSubs);
+                if (Array.isArray(parsedSubs)) {
+                    setSubscriberCount(parsedSubs.length);
+                }
+            } catch (e) {
+                console.error("Failed to parse subscribers for count", e);
+            }
         }
     }, [businessData?.website]);
 
@@ -463,6 +476,7 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
                                 <div className="flex items-center mt-2 gap-2">
                                     <Input
                                         type="email"
+                                        placeholder="Vul e-mailadres in..."
                                         value={testEmail}
                                         onChange={(e) => setTestEmail(e.target.value)}
                                         className="h-8 text-sm"
@@ -483,7 +497,10 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
                                 <>
                                     <span className="font-semibold text-[#111827]">{testEmail}</span>.<br />
                                     <span
-                                        onClick={() => setIsEditingTestEmail(true)}
+                                        onClick={() => {
+                                            setTestEmail("");
+                                            setIsEditingTestEmail(true);
+                                        }}
                                         className="underline decoration-black/20 underline-offset-4 cursor-pointer mt-1 inline-block hover:text-[#111827] transition-all"
                                     >
                                         Change
@@ -513,7 +530,7 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
                                     <span className="text-blue-600 text-xs bg-blue-50 px-2 py-1 rounded-full">Edit</span>
                                 </Button>
                                 <div className="bg-[#f8f9fa] text-center text-[#9CA3AF] py-3 rounded-md text-sm">
-                                    1,248 subscribers
+                                    {subscriberCount} subscriber{subscriberCount !== 1 ? 's' : ''}
                                 </div>
                             </>
                         )}
@@ -527,7 +544,7 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
                         {isSaving ? "Saving..." : saveSuccess ? "Saved Successfully!" : "Review and send"}
                     </Button>
                     <div className="text-center text-xs text-[#9CA3AF] font-light">
-                        Send your campaign to 1,248 subscribers
+                        Send your campaign to {subscriberCount} subscriber{subscriberCount !== 1 ? 's' : ''}
                     </div>
                 </div>
 
