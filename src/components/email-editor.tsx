@@ -26,6 +26,9 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
     const [expandedPlus, setExpandedPlus] = useState<number | null>(null);
     const [isEditingText, setIsEditingText] = useState(false);
 
+    // Track dynamically added blocks
+    const [blocks, setBlocks] = useState<{ id: string; type: 'text' | 'image' | 'button' | 'spacer'; content?: string }[]>([]);
+
     const togglePlus = (id: number) => {
         if (expandedPlus === id) {
             setExpandedPlus(null);
@@ -52,14 +55,17 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
         </div>
     );
 
-    const WidgetItem = ({ icon: Icon, label }: { icon: any, label: string }) => (
-        <div className="flex items-center gap-3 p-3 bg-[#F9FAFB] hover:bg-[#F3F4F6] rounded-md cursor-pointer transition-colors border border-transparent hover:border-black/5">
+    const WidgetItem = ({ icon: Icon, label, onClick }: { icon: any, label: string, onClick?: () => void }) => (
+        <div
+            onClick={onClick}
+            className="flex items-center gap-3 p-3 bg-[#F9FAFB] hover:bg-[#F3F4F6] rounded-md cursor-pointer transition-colors border border-transparent hover:border-black/5"
+        >
             <Icon className="w-5 h-5 text-[#374151]" />
             <span className="text-sm font-medium text-[#111827]">{label}</span>
         </div>
     );
 
-    const ExtraWidgetGrid = () => (
+    const ExtraWidgetGrid = ({ onAddBlock }: { onAddBlock: (type: 'text' | 'image' | 'button' | 'spacer') => void }) => (
         <div className="bg-white rounded-xl shadow-2xl border border-black/10 p-5 mt-4 relative animate-in fade-in zoom-in-95 duration-200 z-30 mx-auto w-full max-w-[500px] flex flex-col max-h-[600px]">
             <div className="absolute -top-3 left-1/2 -translate-x-1/2 text-[#111827] bg-white rounded-full border border-black/10 shadow-sm z-40">
                 <X className="w-6 h-6 p-1.5 cursor-pointer hover:bg-slate-100 rounded-full transition-colors" onClick={(e) => { e.stopPropagation(); setExpandedPlus(null); }} />
@@ -77,16 +83,16 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
             {/* Scrollable Content */}
             <div className="flex-1 overflow-y-auto pr-2 no-scrollbar">
                 <WidgetCategory title="Essentials">
-                    <WidgetItem icon={Type} label="Text" />
-                    <WidgetItem icon={ImageIcon} label="Image" />
-                    <WidgetItem icon={Minus} label="Button" />
-                    <WidgetItem icon={ArrowDownUp} label="Spacer" />
-                    <WidgetItem icon={LayoutGrid} label="Gallery" />
+                    <WidgetItem icon={Type} label="Text" onClick={() => onAddBlock('text')} />
+                    <WidgetItem icon={ImageIcon} label="Image" onClick={() => onAddBlock('image')} />
+                    <WidgetItem icon={Minus} label="Button" onClick={() => onAddBlock('button')} />
+                    <WidgetItem icon={ArrowDownUp} label="Spacer" onClick={() => onAddBlock('spacer')} />
+                    <WidgetItem icon={LayoutGrid} label="Gallery" onClick={() => onAddBlock('image')} />
                     <WidgetItem icon={Video} label="Video" />
                     <WidgetItem icon={ListOrdered} label="Form" />
                     <WidgetItem icon={ListPlus} label="Accordion" />
                     <WidgetItem icon={ArrowDownUp} label="Scrolling" /> {/* Placeholder for scrolling icon */}
-                    <WidgetItem icon={Minus} label="Line" />
+                    <WidgetItem icon={Minus} label="Line" onClick={() => onAddBlock('spacer')} />
                 </WidgetCategory>
 
                 <WidgetCategory title="Sell">
@@ -151,7 +157,11 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
                 </div>
             )}
             {expandedPlus === id && (
-                <ExtraWidgetGrid />
+                <ExtraWidgetGrid onAddBlock={(type) => {
+                    const newBlock = { id: Math.random().toString(36).substr(2, 9), type };
+                    setBlocks([...blocks, newBlock]);
+                    setExpandedPlus(null);
+                }} />
             )}
         </div>
     );
@@ -245,14 +255,53 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
                         </Button>
                     </div>
 
-                    <SeparatorWithPlus id={2} />
+                    {/* Dynamic Blocks */}
+                    {blocks.map((block) => (
+                        <div key={block.id} className="relative group px-8 mt-6">
+                            <div className="absolute -left-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Button variant="ghost" size="icon" className="h-6 w-6 text-red-500 hover:text-red-700 hover:bg-red-50" onClick={() => setBlocks(blocks.filter(b => b.id !== block.id))}>
+                                    <X className="h-4 w-4" />
+                                </Button>
+                            </div>
+
+                            {block.type === 'image' && (
+                                <div className="w-full h-64 bg-slate-100 rounded-xl flex items-center justify-center border-2 border-dashed border-slate-300 text-slate-400 cursor-pointer hover:bg-slate-50 transition-colors">
+                                    <div className="flex flex-col items-center">
+                                        <ImageIcon className="w-8 h-8 mb-2 opacity-50" />
+                                        <span className="text-sm font-medium">Klik om afbeelding te uploaden</span>
+                                    </div>
+                                </div>
+                            )}
+
+                            {block.type === 'text' && (
+                                <textarea
+                                    className="w-full min-h-[100px] text-[15px] leading-[1.8] text-[#374151] resize-none focus:outline-none bg-transparent hover:ring-1 hover:ring-black/10 p-2 rounded-sm"
+                                    placeholder="Typ hier je tekst..."
+                                />
+                            )}
+
+                            {block.type === 'button' && (
+                                <div className="flex justify-center my-4">
+                                    <Button className="bg-[#1f2937] text-white hover:bg-black px-8 py-6 rounded-md font-semibold font-sans">
+                                        Nieuwe Knop
+                                    </Button>
+                                </div>
+                            )}
+
+                            {block.type === 'spacer' && (
+                                <div className="py-8 w-full flex items-center justify-center">
+                                    <div className="w-[80%] border-t border-solid border-[#E5E7EB]"></div>
+                                </div>
+                            )}
+                        </div>
+                    ))}
+
+                    {blocks.length > 0 && <SeparatorWithPlus id={3} />}
 
                     {/* Footer Block */}
                     <div className="px-8 pt-8 flex flex-col items-center justify-center text-center">
                         <div className="flex gap-4 mb-8">
-                            <span className="w-8 h-8 bg-[#1f2937] text-white rounded-full flex items-center justify-center"><Facebook className="w-4 h-4 fill-white" /></span>
-                            <span className="w-8 h-8 bg-[#1f2937] text-white rounded-full flex items-center justify-center"><Instagram className="w-4 h-4" /></span>
-                            <span className="w-8 h-8 bg-[#1f2937] text-white rounded-full flex items-center justify-center"><Twitter className="w-4 h-4 fill-white" /></span>
+                            <span className="w-8 h-8 bg-[#1f2937] text-white rounded-full flex items-center justify-center cursor-pointer hover:bg-black transition-colors"><Instagram className="w-4 h-4" /></span>
                         </div>
 
                         <h4 className="font-bold text-[#111827] mb-2">{businessData.name}</h4>
