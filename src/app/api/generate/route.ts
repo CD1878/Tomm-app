@@ -17,6 +17,10 @@ const EmailSchema = z.object({
 const CampaignsSchema = z.object({
     campaigns: z.array(EmailSchema).length(12),
     scrapedContextSummary: z.string(),
+    businessName: z.string().describe("The real name of the restaurant or business"),
+    businessAddress: z.string().describe("The physical address of the business"),
+    businessWebsite: z.string().describe("The homepage URL of the business"),
+    businessLogo: z.string().optional().describe("Absolute URL to the business logo image, if found. Usually in the header or footer of the website."),
 });
 
 export async function POST(req: Request) {
@@ -87,10 +91,10 @@ export async function POST(req: Request) {
         ${instructionsInjection}
         
         Instructions:
-        1. Analyze the business based on the scraped website content (vibe, menu, unique selling points, if they have a terrace, event spaces, etc.).
+        1. Analyze the business based on the scraped website content (vibe, menu, unique selling points, if they have a terrace, event spaces, etc.). Extract the business name, physical address, logo URL, and website URL for the global fields.
         2. Create exactly 12 distinct email campaigns, one for each month of the year (Month 1 = Jan, 2 = Feb, etc).
         3. Make the body text beautiful, engaging, and structured. Use short paragraphs and warm hospitality greetings. Do not just output one boring summary line. It should read like a premium marketing email.
-        4. IMAGE URL: Scan the provided website markdown for real image links (e.g. .jpg, .png, .webp). Try to find an image url that matches the theme of the month (e.g., drinks for summer, cozy interior for winter). If you find one, include it as a full absolute URL in the imageUrl field.
+        4. IMAGE URL: Scan the provided website markdown for real image links (e.g. .jpg, .png, .webp) that match the theme of the month. CRITICAL: NEVER hallucinate, make up, or use placeholder image URLs (like unsplash source). If you cannot find a valid, real absolute image URL from the scraped context, LEAVE IT UNDEFINED. 
         5. CALL TO ACTION / BOOKING LINK: You MUST include a clear, prominent booking link or "Reserveer Hier" button at the bottom of the email body text. Use standard HTML link formatting pointing back to the website URL or their reservation system. This is crucial for tracking conversion analytics.
         6. Tie campaigns to seasonal hospitality trends (e.g., January: Healthy start; February: Valentine's; Spring: Terrace opening; December: Holiday bookings).
         7. The tone should match the presumed brand voice from the website, UNLESS dictated otherwise by the Global Instructions.

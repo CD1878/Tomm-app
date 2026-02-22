@@ -14,11 +14,12 @@ import {
 
 interface EmailEditorProps {
     campaign: any;
+    businessData: { name: string; address: string; zipCode: string; website: string; logoUrl?: string };
     onSave: (updatedCampaign: any) => void;
     onCancel: () => void;
 }
 
-export function EmailEditor({ campaign, onSave, onCancel }: EmailEditorProps) {
+export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailEditorProps) {
     const [subject, setSubject] = useState(campaign.subject || '');
     const [summary, setSummary] = useState(campaign.summary || '');
     const [body, setBody] = useState(campaign.body || '');
@@ -164,14 +165,17 @@ export function EmailEditor({ campaign, onSave, onCancel }: EmailEditorProps) {
 
                     {/* Header Logo */}
                     <div className="py-10 flex flex-col items-center justify-center border-b border-black/5 px-8">
-                        {/* Placeholder logo similar to Plantage Rococo */}
-                        <div className="flex flex-col items-center opacity-80 mb-2">
-                            <div className="w-20 h-16 border-2 border-black/80 rounded-sm relative flex justify-center items-end">
-                                {/* SVG mock of logo house */}
-                                <div className="absolute bottom-0 w-8 h-8 border-l-2 border-r-2 border-t-2 border-black/80"></div>
+                        {businessData.logoUrl ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={businessData.logoUrl} alt={businessData.name} className="h-16 w-auto object-contain" />
+                        ) : (
+                            <div className="flex flex-col items-center opacity-80 mb-2">
+                                <div className="w-20 h-16 border-2 border-black/80 rounded-sm relative flex justify-center items-end">
+                                    <div className="absolute bottom-0 w-8 h-8 border-l-2 border-r-2 border-t-2 border-black/80"></div>
+                                </div>
+                                <h2 className="mt-4 font-serif text-lg tracking-[0.2em] font-light text-black uppercase">{businessData.name}</h2>
                             </div>
-                            <h2 className="mt-4 font-serif text-lg tracking-[0.2em] font-light text-black uppercase">Jouw Restaurant</h2>
-                        </div>
+                        )}
                     </div>
 
                     <SeparatorWithPlus id={1} />
@@ -182,7 +186,15 @@ export function EmailEditor({ campaign, onSave, onCancel }: EmailEditorProps) {
                     <div className="px-8 mb-4 relative group">
                         {campaign.imageUrl ? (
                             // eslint-disable-next-line @next/next/no-img-element
-                            <img src={campaign.imageUrl} alt="Campaign Header" className="w-full h-auto rounded-xl object-cover" />
+                            <img
+                                src={campaign.imageUrl}
+                                alt="Campaign Header"
+                                className="w-full h-auto rounded-xl object-cover"
+                                onError={(e) => {
+                                    // Fallback if the AI hallucinated a broken URL or image is missing
+                                    e.currentTarget.src = "https://images.unsplash.com/photo-1414235077428-33898ed1e829?q=80&w=800&auto=format&fit=crop";
+                                }}
+                            />
                         ) : (
                             <div className="w-full h-64 bg-slate-100 rounded-xl flex items-center justify-center text-slate-400">
                                 <span>Geen afbeelding geselecteerd</span>
@@ -243,10 +255,10 @@ export function EmailEditor({ campaign, onSave, onCancel }: EmailEditorProps) {
                             <span className="w-8 h-8 bg-[#1f2937] text-white rounded-full flex items-center justify-center"><Twitter className="w-4 h-4 fill-white" /></span>
                         </div>
 
-                        <h4 className="font-bold text-[#111827] mb-2">Jouw Restaurant Naam</h4>
-                        <p className="text-[#374151] text-sm mb-1">Rijksweg 116</p>
-                        <p className="text-[#374151] text-sm mb-1">1981 LD, Velsen-Zuid</p>
-                        <p className="text-[#374151] text-sm underline mb-8">www.jouwwebsite.nl</p>
+                        <h4 className="font-bold text-[#111827] mb-2">{businessData.name}</h4>
+                        <p className="text-[#374151] text-sm mb-1">{businessData.address}</p>
+                        <p className="text-[#374151] text-sm mb-1">{businessData.zipCode}</p>
+                        <p className="text-[#374151] text-sm underline mb-8">{businessData.website}</p>
 
                         <p className="text-[#374151] text-sm mb-2">Wil je deze e-mails niet ontvangen?</p>
                         <p className="text-[#374151] text-sm underline cursor-pointer">Uitschrijven</p>

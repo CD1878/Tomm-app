@@ -206,17 +206,50 @@ export default function DashboardPage() {
             // so we gracefully fallback to the specific Paardje mock data without failing.
             // Add an artificial delay to simulate the "AI thinking" process for the demo
             await new Promise((resolve) => setTimeout(resolve, 3500));
-            setCampaigns(mockCampaigns);
+
+            // Save mock data to DB so it persists across refreshes and editor closings
+            const supabase = createClient();
+            const { data: { user } } = await supabase.auth.getUser();
+
+            for (const mockCamp of mockCampaigns) {
+                // Check if already exists to avoid duplicates
+                const { data: existing } = await supabase.from('campaigns').select('id').eq('month', mockCamp.month).eq('user_id', user?.id).single();
+                if (!existing) {
+                    await supabase.from('campaigns').insert([{
+                        user_id: user?.id,
+                        month: mockCamp.month,
+                        month_name: mockCamp.name,
+                        subject: mockCamp.subject,
+                        summary: mockCamp.summary,
+                        bodyText: mockCamp.body,
+                        image_url: mockCamp.imageUrl,
+                        send_date: mockCamp.date,
+                        status: mockCamp.status
+                    }]);
+                }
+            }
+
+            fetchCampaigns();
         } finally {
             setIsGenerating(false);
         }
     };
 
     if (selectedCampaign) {
+
+        // Use generic fallback or attempt to extract from global settings if available
+        const businessData = {
+            name: "Café Het Paardje",
+            address: "Gerard Douplein 1",
+            zipCode: "1072 VR, Amsterdam",
+            website: "www.cafehetpaardje.nl"
+        };
+
         return (
             <div className="w-full bg-[#f8f9fa] overflow-hidden p-6 -mt-8">
                 <EmailEditor
                     campaign={selectedCampaign}
+                    businessData={businessData}
                     onSave={async (updated) => {
                         const supabase = createClient();
                         if (updated.id) {
