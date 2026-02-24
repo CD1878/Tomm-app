@@ -31,24 +31,33 @@ export async function POST(req: Request) {
         console.log(`Found ${emailAddresses.length} contacts for live campaign. Dispatching via Resend...`);
 
         // Production dispatch: We can now send to ALL subscribers because we are out of the sandbox.
-        // We set 'To' as the sender itself (or a generic address) and put everyone else in 'BCC' so they don't see each other's emails.
+        // Important: Resend has payload bulk limits and BCC is limited to 50 addresses per request.
+        // We use the batch API which allows up to 100 emails per batch.
         const senderStr = senderName || 'TOMM App';
-        const { data, error } = await resend.emails.send({
-            from: `${senderStr} <hallo@mail.tomm.chefdigital.nl>`,
-            to: ['hallo@mail.tomm.chefdigital.nl'],
-            bcc: emailAddresses,
-            subject: subject,
-            html: html,
-        });
+        const BATCH_SIZE = 100;
+        let successCount = 0;
 
-        if (error) {
-            console.error('--- RESEND API ERROR RAW ---');
-            console.error(JSON.stringify(error, null, 2));
-            console.error('----------------------------');
-            return NextResponse.json({ error: error.message }, { status: 400 });
+        for (let i = 0; i < emailAddresses.length; i += BATCH_SIZE) {
+            const chunk = emailAddresses.slice(i, i + BATCH_SIZE);
+
+            const batchPayload = chunk.map((email: string) => ({
+                from: `${senderStr} <hallo@mail.tomm.chefdigital.nl>`,
+                to: [email],
+                subject: subject,
+                html: html,
+            }));
+
+            const { data, error } = await resend.batch.send(batchPayload);
+
+            if (error) {
+                console.error(`--- RESEND API ERROR RAW (Chunk ${i}) ---`);
+                console.error(JSON.stringify(error, null, 2));
+                return NextResponse.json({ error: error.message }, { status: 400 });
+            }
+            successCount += chunk.length;
         }
 
-        return NextResponse.json({ success: true, data });
+        return NextResponse.json({ success: true, count: successCount });
     } catch (error: any) {
         console.error('Live campaign sending error:', error);
         return NextResponse.json({ error: error.message || 'Failed to send campaign' }, { status: 500 });
