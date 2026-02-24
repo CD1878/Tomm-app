@@ -568,7 +568,7 @@ export default function DashboardPage() {
                                             ? 'bg-green-100 text-green-700 hover:bg-green-200 shadow-none border-none'
                                             : 'bg-amber-100 text-amber-700 hover:bg-amber-200 shadow-none border-none'
                                 }>
-                                    {camp.status === 'draft' ? 'Draft' : camp.status === 'sent' ? 'Sent' : 'Scheduled'}
+                                    {camp.status === 'draft' ? 'Concept' : camp.status === 'sent' ? 'Verzonden' : 'Goedgekeurd'}
                                 </Badge>
 
                                 <div className="flex items-center gap-2">
@@ -673,9 +673,9 @@ export default function DashboardPage() {
                                             size="sm"
                                             onClick={() => handleApproveCampaign(camp.month)}
                                             disabled={approvingCampaignId === camp.month}
-                                            className="h-8 text-xs bg-[#253551] text-white hover:bg-[#253551]/90 shadow-sm transition-all"
+                                            className="h-8 text-xs bg-green-600 text-white hover:bg-green-700 shadow-sm transition-all"
                                         >
-                                            {approvingCampaignId === camp.month ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Approve'}
+                                            {approvingCampaignId === camp.month ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Goedkeuren'}
                                         </Button>
                                     )}
                                     <Button variant="ghost" size="icon" className="h-8 w-8 text-[#253551]/50 hover:text-[#253551] hover:bg-[#253551]/10 rounded-full" onClick={() => setSelectedCampaign(camp)}>
