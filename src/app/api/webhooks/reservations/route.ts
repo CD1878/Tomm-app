@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server';
-import { Resend } from 'resend';
+import { createClient } from '@supabase/supabase-js';
 
-// Initialize Resend
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Initialize Supabase (Anon key is perfectly safe here as we use a SECURITY DEFINER RPC)
+const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 // Define a common structure we expect to parse from reservation webhooks
 interface ReservationWebhookPayload {
@@ -49,26 +52,25 @@ export async function POST(req: Request) {
 
         console.log(`[Webhook] Received new reservation email from ${payload.source}: ${payload.guestEmail}`);
 
-        // TODO: In a real multi-tenant app, you'd look up the Resend Audience ID 
-        // belonging to this specific restaurant from Supabase using `payload.restaurantId`.
-        // For this MVP, we will use a generic default audience ID.
-        const audienceId = process.env.RESEND_AUDIENCE_ID || 'dummy-audience-id';
+        // In a real multi-tenant app, we'd look up the user_id based on a token or payload.restaurantId
+        // For this demo, we'll gracefully fallback to the primary admin account if missing.
+        const userId = payload.restaurantId || '474a5578-98f9-467b-ae73-f61715d567a5';
 
-        // Add the contact directly to Resend Audience
-        const { data, error } = await resend.contacts.create({
-            email: payload.guestEmail,
-            firstName: payload.guestName?.split(' ')[0] || '',
-            lastName: payload.guestName?.split(' ').slice(1).join(' ') || '',
-            unsubscribed: false,
-            audienceId: audienceId,
+        // Add the contact directly to our self-hosted Supabase CRM
+        const { error } = await supabase.rpc('insert_webhook_contact', {
+            p_user_id: userId,
+            p_email: payload.guestEmail,
+            p_first_name: payload.guestName?.split(' ')[0] || '',
+            p_last_name: payload.guestName?.split(' ').slice(1).join(' ') || '',
+            p_source: payload.source
         });
 
         if (error) {
-            console.error('[Webhook] Failed to add contact to Resend:', error);
-            return NextResponse.json({ error: 'Failed to sync contact to Resend' }, { status: 500 });
+            console.error('[Webhook] Failed to add contact to Supabase:', error);
+            return NextResponse.json({ error: 'Failed to sync contact to Supabase' }, { status: 500 });
         }
 
-        console.log(`[Webhook] Successfully added ${payload.guestEmail} to audience ${audienceId}`);
+        console.log(`[Webhook] Successfully added ${payload.guestEmail} to Supabase for user ${userId}`);
 
         return NextResponse.json({ success: true, message: 'Contact synced successfully' });
 

@@ -9,8 +9,10 @@ import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Globe, Instagram, Upload, RefreshCw, CheckCircle2, Loader2, Users, Mail, Trash2 } from "lucide-react"
 import { motion } from "framer-motion"
+import { createClient } from '@/utils/supabase/client';
 
 export default function SettingsPage() {
+    const supabase = createClient();
     const [isScraping, setIsScraping] = useState(false);
     const [scrapeSuccess, setScrapeSuccess] = useState(false);
     const [scrapeError, setScrapeError] = useState("");
@@ -21,6 +23,7 @@ export default function SettingsPage() {
     const [newEmail, setNewEmail] = useState("");
     const [addSuccess, setAddSuccess] = useState(false);
     const [subscribers, setSubscribers] = useState<{ email: string, source: string, date: string }[]>([]);
+    const [isDeletingAll, setIsDeletingAll] = useState(false);
 
     // UI Interaction states
     const [uploadingCSV, setUploadingCSV] = useState(false);
@@ -38,43 +41,66 @@ export default function SettingsPage() {
             setDefaultLanguage(savedLanguage);
         }
 
-        const savedSubs = localStorage.getItem('tomm_demo_subscribers');
-        if (savedSubs) {
-            setSubscribers(JSON.parse(savedSubs));
-        } else {
-            // Initial mock data to make the MVP look populated
-            const initialMock = [
-                { email: "johan@example.com", source: "Tebi Import", date: "Oct 12, 2023" },
-                { email: "sarah.peeters@gmail.com", source: "Tebi Import", date: "Nov 05, 2023" },
-                { email: "info@business-partner.nl", source: "Website Form", date: "Jan 22, 2024" },
-            ];
-            setSubscribers(initialMock);
-            localStorage.setItem('tomm_demo_subscribers', JSON.stringify(initialMock));
-        }
+        const fetchContacts = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            const userId = user ? user.id : '474a5578-98f9-467b-ae73-f61715d567a5';
+
+            const { data } = await supabase.from('contacts').select('*').eq('user_id', userId).order('created_at', { ascending: false });
+            if (data) {
+                setSubscribers(data.map(c => ({ email: c.email, source: c.source || 'Website Form', date: new Date(c.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) })));
+            }
+        };
+        fetchContacts();
     }, []);
 
-    const handleAddSubscriber = () => {
+    const handleAddSubscriber = async () => {
         if (!newEmail || !newEmail.includes('@')) return;
+        const { data: { user } } = await supabase.auth.getUser();
+        const userId = user ? user.id : '474a5578-98f9-467b-ae73-f61715d567a5';
 
-        const newSub = {
+        const { data, error } = await supabase.from('contacts').insert([{
+            user_id: userId,
             email: newEmail,
             source: "Manual Add",
-            date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-        };
+        }]).select().single();
 
-        const updatedSubs = [newSub, ...subscribers];
-        setSubscribers(updatedSubs);
-        localStorage.setItem('tomm_demo_subscribers', JSON.stringify(updatedSubs));
-        setNewEmail("");
-
-        setAddSuccess(true);
-        setTimeout(() => setAddSuccess(false), 3000);
+        if (data && !error) {
+            const newSub = {
+                email: data.email,
+                source: "Manual Add",
+                date: new Date(data.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+            };
+            setSubscribers([newSub, ...subscribers]);
+            setNewEmail("");
+            setAddSuccess(true);
+            setTimeout(() => setAddSuccess(false), 3000);
+        }
     };
 
-    const handleRemoveSubscriber = (emailToRemove: string) => {
-        const updatedSubs = subscribers.filter(s => s.email !== emailToRemove);
-        setSubscribers(updatedSubs);
-        localStorage.setItem('tomm_demo_subscribers', JSON.stringify(updatedSubs));
+    const handleRemoveSubscriber = async (emailToRemove: string) => {
+        const { data: { user } } = await supabase.auth.getUser();
+        const userId = user ? user.id : '474a5578-98f9-467b-ae73-f61715d567a5';
+
+        const { error } = await supabase.from('contacts').delete().eq('user_id', userId).eq('email', emailToRemove);
+        if (!error) {
+            const updatedSubs = subscribers.filter(s => s.email !== emailToRemove);
+            setSubscribers(updatedSubs);
+        }
+    };
+
+    const handleRemoveAllSubscribers = async () => {
+        if (!confirm("Weet je zeker dat je ALLE contacten wilt verwijderen? Dit kan niet ongedaan worden gemaakt.")) return;
+        setIsDeletingAll(true);
+        const { data: { user } } = await supabase.auth.getUser();
+        const userId = user ? user.id : '474a5578-98f9-467b-ae73-f61715d567a5';
+
+        const { error } = await supabase.from('contacts').delete().eq('user_id', userId);
+        if (!error) {
+            setSubscribers([]);
+        } else {
+            alert("Fout bij verwijderen: " + error.message);
+        }
+        setIsDeletingAll(false);
     };
 
     const processCSV = async (file: File) => {
@@ -99,20 +125,23 @@ export default function SettingsPage() {
             });
 
             if (newEmails.length > 0) {
-                // Deduplicate and format
                 const uniqueEmails = Array.from(new Set(newEmails));
-                const newSubs = uniqueEmails.map(email => ({
+                const { data: { user } } = await supabase.auth.getUser();
+                const userId = user ? user.id : '474a5578-98f9-467b-ae73-f61715d567a5';
+
+                const inserts = uniqueEmails.map(email => ({
+                    user_id: userId,
                     email,
-                    source: "CSV Import",
-                    date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                    source: "CSV Import"
                 }));
+                // Insert to supabase ignoring duplicates using ON CONFLICT logic
+                await supabase.from('contacts').upsert(inserts, { onConflict: 'user_id, email', ignoreDuplicates: true });
 
-                const updatedSubs = [...newSubs, ...subscribers];
-                // Deduplicate against existing subscribers
-                const finalSubs = Array.from(new Map(updatedSubs.map(item => [item.email, item])).values());
-
-                setSubscribers(finalSubs);
-                localStorage.setItem('tomm_demo_subscribers', JSON.stringify(finalSubs));
+                // Re-fetch to display updated list
+                const { data } = await supabase.from('contacts').select('*').eq('user_id', userId).order('created_at', { ascending: false });
+                if (data) {
+                    setSubscribers(data.map(c => ({ email: c.email, source: c.source || 'CSV Import', date: new Date(c.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) })));
+                }
             }
 
             setUploadedCSV(true);
@@ -373,9 +402,23 @@ export default function SettingsPage() {
                             </div>
 
                             <div className="mt-8 pt-8 border-t border-[#253551]/10">
-                                <div className="flex items-center gap-2 mb-4">
-                                    <Users className="w-5 h-5 text-[#253551]" />
-                                    <h3 className="font-semibold text-[#253551]">Subscriber Overview</h3>
+                                <div className="flex items-center justify-between mb-4">
+                                    <div className="flex items-center gap-2">
+                                        <Users className="w-5 h-5 text-[#253551]" />
+                                        <h3 className="font-semibold text-[#253551]">Subscriber Overview</h3>
+                                    </div>
+                                    {subscribers.length > 0 && (
+                                        <Button
+                                            variant="destructive"
+                                            size="sm"
+                                            onClick={handleRemoveAllSubscribers}
+                                            disabled={isDeletingAll}
+                                            className="h-8 text-xs shadow-sm bg-red-500 hover:bg-red-600 text-white"
+                                        >
+                                            {isDeletingAll ? <Loader2 className="w-3 h-3 mr-2 animate-spin" /> : <Trash2 className="w-3 h-3 mr-2" />}
+                                            Alles ({subscribers.length}) Verwijderen
+                                        </Button>
+                                    )}
                                 </div>
 
                                 <div className="border border-[#253551]/10 rounded-lg overflow-hidden bg-white">

@@ -12,6 +12,7 @@ import {
     FileCode, Terminal, Share2, Tags, Rss, Archive, UtensilsCrossed, Cloud, Camera, HeartHandshake, Music4,
     Loader2, CheckCircle2
 } from "lucide-react";
+import { createClient } from '@/utils/supabase/client';
 
 interface EmailEditorProps {
     campaign: any;
@@ -78,13 +79,34 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
         setIsTesting(true);
         try {
             const htmlContent = `
-                <div style="font-family: sans-serif; color: #111827;">
-                    <h2>${subject || 'Test E-mail'}</h2>
-                    <p style="color: #6B7280; font-style: italic;">${summary || 'Preheader text...'}</p>
-                    <hr style="border: 0; border-top: 1px solid #E5E7EB; margin: 20px 0;" />
-                    <div style="white-space: pre-wrap; line-height: 1.6;">${body || 'Inhoud van de e-mail...'}</div>
-                    <hr style="border: 0; border-top: 1px solid #E5E7EB; margin: 20px 0;" />
-                    <p style="font-size: 12px; color: #9CA3AF;">Verzonden via TOMM voor ${businessData?.name || 'jouw bedrijf'}</p>
+                <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f9fafb; padding: 40px 20px; color: #111827;">
+                    <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+                        ${campaign.imageUrl ? `<img src="${campaign.imageUrl}" alt="Hero" style="width: 100%; height: 250px; object-fit: cover; display: block;" />` : ''}
+                        
+                        <div style="padding: 40px 32px;">
+                            <h2 style="margin-top: 0; font-size: 24px; font-weight: 700; color: #111827; margin-bottom: 8px;">${subject || 'Test E-mail'}</h2>
+                            <p style="color: #6B7280; font-style: italic; font-size: 15px; margin-top: 0; margin-bottom: 24px; line-height: 1.5;">${summary || 'Preheader text...'}</p>
+                            
+                            <hr style="border: 0; border-top: 1px solid #f3f4f6; margin: 0 0 24px 0;" />
+                            
+                            <div style="white-space: pre-wrap; line-height: 1.7; font-size: 16px; color: #374151;">${body || 'Inhoud van de e-mail...'}</div>
+                            
+                            <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-top: 40px;">
+                                <tr>
+                                    <td align="center">
+                                        <a href="${campaign.buttonUrl || businessData?.website || '#'}" style="background-color: #111827; color: #ffffff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-block; font-size: 16px;">Reserveren</a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        
+                        <div style="background-color: #f9fafb; padding: 24px; border-top: 1px solid #f3f4f6; text-align: center;">
+                            <p style="font-size: 12px; color: #9CA3AF; margin: 0;">Verzonden via TOMM voor ${businessData?.name || 'jouw restaurant'}</p>
+                            <div style="margin-top: 12px;">
+                                <a href="#" style="color: #6B7280; font-size: 12px; text-decoration: underline;">Uitschrijven</a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             `;
 
@@ -94,17 +116,22 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
                 body: JSON.stringify({
                     to: testEmail,
                     subject: subject || 'Test e-mail vanuit TOMM',
-                    html: htmlContent
+                    html: htmlContent,
+                    senderName: businessData?.name || 'TOMM'
                 })
             });
 
-            if (!res.ok) throw new Error('Test e-mail mislukt');
+            const data = await res.json();
+
+            if (!res.ok || data.error) {
+                throw new Error(data.error || 'Serverfout bij verzenden van e-mail');
+            }
 
             setTestSuccess(true);
             setTimeout(() => setTestSuccess(false), 3000);
-        } catch (error) {
-            console.error(error);
-            alert("Het versturen van de test e-mail is mislukt.");
+        } catch (error: any) {
+            console.error("Test email API error:", error);
+            alert(`Fout bij verzenden test e-mail: ${error.message}`);
         } finally {
             setIsTesting(false);
         }
@@ -119,8 +146,60 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
                 summary,
                 body
             });
+
+            const htmlContent = `
+                <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f9fafb; padding: 40px 20px; color: #111827;">
+                    <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+                        ${campaign.imageUrl ? `<img src="${campaign.imageUrl}" alt="Hero" style="width: 100%; height: 250px; object-fit: cover; display: block;" />` : ''}
+                        
+                        <div style="padding: 40px 32px;">
+                            <h2 style="margin-top: 0; font-size: 24px; font-weight: 700; color: #111827; margin-bottom: 8px;">${subject || 'Test E-mail'}</h2>
+                            <p style="color: #6B7280; font-style: italic; font-size: 15px; margin-top: 0; margin-bottom: 24px; line-height: 1.5;">${summary || 'Preheader text...'}</p>
+                            
+                            <hr style="border: 0; border-top: 1px solid #f3f4f6; margin: 0 0 24px 0;" />
+                            
+                            <div style="white-space: pre-wrap; line-height: 1.7; font-size: 16px; color: #374151;">${body || 'Inhoud van de e-mail...'}</div>
+                            
+                            <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-top: 40px;">
+                                <tr>
+                                    <td align="center">
+                                        <a href="${campaign.buttonUrl || businessData?.website || '#'}" style="background-color: #111827; color: #ffffff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-block; font-size: 16px;">Reserveren</a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        
+                        <div style="background-color: #f9fafb; padding: 24px; border-top: 1px solid #f3f4f6; text-align: center;">
+                            <p style="font-size: 12px; color: #9CA3AF; margin: 0;">Verzonden via TOMM voor ${businessData?.name || 'jouw restaurant'}</p>
+                            <div style="margin-top: 12px;">
+                                <a href="#" style="color: #6B7280; font-size: 12px; text-decoration: underline;">Uitschrijven</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Trigger actual dispatch for the active tenant's contacts
+            const res = await fetch('/api/send-campaign', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    subject: subject || 'Nieuwe E-mail vanuit TOMM',
+                    html: htmlContent,
+                    senderName: businessData?.name || 'TOMM'
+                })
+            });
+
+            const data = await res.json();
+            if (!res.ok || data.error) {
+                throw new Error(data.error || 'Serverfout bij verzenden van campagne');
+            }
+
             setSaveSuccess(true);
             setTimeout(() => setSaveSuccess(false), 2000);
+        } catch (error: any) {
+            console.error("Live campaign API error:", error);
+            alert(`Fout bij verzenden campagne: ${error.message}`);
         } finally {
             setIsSaving(false);
         }
@@ -214,17 +293,21 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
             setWebsiteUrl(storedUrl.startsWith('http') ? storedUrl : `https://${storedUrl}`);
         }
 
-        const savedSubs = localStorage.getItem('tomm_demo_subscribers');
-        if (savedSubs) {
-            try {
-                const parsedSubs = JSON.parse(savedSubs);
-                if (Array.isArray(parsedSubs)) {
-                    setSubscriberCount(parsedSubs.length);
-                }
-            } catch (e) {
-                console.error("Failed to parse subscribers for count", e);
+        const fetchSubscriberCount = async () => {
+            const supabase = createClient();
+            const { data: { user } } = await supabase.auth.getUser();
+            const userId = user ? user.id : '474a5578-98f9-467b-ae73-f61715d567a5';
+
+            const { count, error } = await supabase
+                .from('contacts')
+                .select('*', { count: 'exact', head: true })
+                .eq('user_id', userId);
+            if (!error && count !== null) {
+                setSubscriberCount(count);
             }
-        }
+        };
+        fetchSubscriberCount();
+
     }, [businessData?.website]);
 
     return (
@@ -541,7 +624,7 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
                 <div className="px-6 py-6 border-t border-black/5 bg-slate-50 flex flex-col gap-3">
                     <Button onClick={handleEmailSave} disabled={isSaving} className="w-full bg-[#7C9EF7] hover:bg-[#6e8eeb] text-white py-6 text-[15px] font-semibold shadow-sm rounded-md transition-all">
                         {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : saveSuccess ? <CheckCircle2 className="mr-2 h-4 w-4" /> : null}
-                        {isSaving ? "Saving..." : saveSuccess ? "Saved Successfully!" : "Review and send"}
+                        {isSaving ? "Sending Campaign..." : saveSuccess ? "Sent Successfully!" : "Review and send"}
                     </Button>
                     <div className="text-center text-xs text-[#9CA3AF] font-light">
                         Send your campaign to {subscriberCount} subscriber{subscriberCount !== 1 ? 's' : ''}
