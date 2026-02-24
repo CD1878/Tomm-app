@@ -81,7 +81,20 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
             const htmlContent = `
                 <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f9fafb; padding: 40px 20px; color: #111827;">
                     <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
-                        ${campaign.imageUrl ? `<img src="${campaign.imageUrl}" alt="Hero" style="width: 100%; height: 250px; object-fit: cover; display: block;" />` : ''}
+                        
+                        <!-- Header Logo -->
+                        <div style="padding: 30px 20px; text-align: center; border-bottom: 1px solid #f3f4f6;">
+                            ${businessData?.logoUrl
+                    ? `<img src="${businessData.logoUrl}" alt="${businessData?.name || 'Logo'}" style="height: 60px; width: auto; max-width: 200px; object-fit: contain; display: block; margin: 0 auto;" />`
+                    : `<h2 style="margin: 0; font-family: Georgia, serif; font-size: 20px; letter-spacing: 0.2em; font-weight: 300; color: #111827; text-transform: uppercase;">${businessData?.name || 'JOUW RESTAURANT'}</h2>`
+                }
+                        </div>
+
+                        <!-- Hero Image -->
+                        ${campaign?.imageUrl
+                    ? `<img src="${campaign.imageUrl}" alt="Hero" style="width: 100%; height: 300px; object-fit: cover; display: block;" onerror="this.src='https://images.unsplash.com/photo-1414235077428-33898ed1e829?q=80&w=800&auto=format&fit=crop'" />`
+                    : `<img src="https://images.unsplash.com/photo-1414235077428-33898ed1e829?q=80&w=800&auto=format&fit=crop" alt="Hero Fallback" style="width: 100%; height: 300px; object-fit: cover; display: block;" />`
+                }
                         
                         <div style="padding: 40px 32px;">
                             <h2 style="margin-top: 0; font-size: 24px; font-weight: 700; color: #111827; margin-bottom: 8px;">${subject || 'Test E-mail'}</h2>
@@ -150,7 +163,20 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
             const htmlContent = `
                 <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f9fafb; padding: 40px 20px; color: #111827;">
                     <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
-                        ${campaign.imageUrl ? `<img src="${campaign.imageUrl}" alt="Hero" style="width: 100%; height: 250px; object-fit: cover; display: block;" />` : ''}
+                        
+                        <!-- Header Logo -->
+                        <div style="padding: 30px 20px; text-align: center; border-bottom: 1px solid #f3f4f6;">
+                            ${businessData?.logoUrl
+                    ? `<img src="${businessData.logoUrl}" alt="${businessData?.name || 'Logo'}" style="height: 60px; width: auto; max-width: 200px; object-fit: contain; display: block; margin: 0 auto;" />`
+                    : `<h2 style="margin: 0; font-family: Georgia, serif; font-size: 20px; letter-spacing: 0.2em; font-weight: 300; color: #111827; text-transform: uppercase;">${businessData?.name || 'JOUW RESTAURANT'}</h2>`
+                }
+                        </div>
+
+                        <!-- Hero Image -->
+                        ${campaign?.imageUrl
+                    ? `<img src="${campaign.imageUrl}" alt="Hero" style="width: 100%; height: 300px; object-fit: cover; display: block;" onerror="this.src='https://images.unsplash.com/photo-1414235077428-33898ed1e829?q=80&w=800&auto=format&fit=crop'" />`
+                    : `<img src="https://images.unsplash.com/photo-1414235077428-33898ed1e829?q=80&w=800&auto=format&fit=crop" alt="Hero Fallback" style="width: 100%; height: 300px; object-fit: cover; display: block;" />`
+                }
                         
                         <div style="padding: 40px 32px;">
                             <h2 style="margin-top: 0; font-size: 24px; font-weight: 700; color: #111827; margin-bottom: 8px;">${subject || 'Test E-mail'}</h2>
