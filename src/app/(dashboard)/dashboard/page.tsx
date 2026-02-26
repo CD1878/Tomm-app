@@ -136,6 +136,7 @@ export default function DashboardPage() {
     const [monthlyInstructions, setMonthlyInstructions] = useState<Record<number, string>>({});
     const [isRegeneratingMonth, setIsRegeneratingMonth] = useState<Record<number, boolean>>({});
     const [approvingCampaignId, setApprovingCampaignId] = useState<number | null>(null);
+    const [contactsCount, setContactsCount] = useState<number>(0);
 
     const handleRegenerateMonth = async (month: number) => {
         setIsRegeneratingMonth(prev => ({ ...prev, [month]: true }));
@@ -249,8 +250,25 @@ export default function DashboardPage() {
         }
     };
 
+    const fetchContactsCount = async () => {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+            const { count, error } = await supabase
+                .from('contacts')
+                .select('*', { count: 'exact', head: true })
+                .eq('user_id', user.id)
+                .is('unsubscribed_at', null);
+
+            if (!error && count !== null) {
+                setContactsCount(count);
+            }
+        }
+    };
+
     useEffect(() => {
         fetchCampaigns();
+        fetchContactsCount();
     }, []);
 
     const handleGenerate = async () => {
@@ -532,7 +550,7 @@ export default function DashboardPage() {
                                         <div className="flex flex-col items-center">
                                             <div className="flex items-center tabular-nums text-[#253551] mb-1">
                                                 <Users className="w-3 h-3 mr-1" />
-                                                <span className="text-xs font-bold">1,240</span>
+                                                <span className="text-xs font-bold">{contactsCount.toLocaleString()}</span>
                                             </div>
                                             <span className="text-[10px] text-black/40 uppercase tracking-wider">Sent</span>
                                         </div>
@@ -554,7 +572,7 @@ export default function DashboardPage() {
                                 ) : (
                                     <div className="mt-4 pt-4 border-t border-[#253551]/10 flex items-center justify-between">
                                         <span className="text-xs text-black/40 flex items-center"><LinkIcon className="w-3 h-3 mr-1" /> Tracking CTA Clicks</span>
-                                        <span className="text-xs font-semibold text-[#253551] flex items-center"><Users className="w-3 h-3 mr-1" /> ~1,240 Reach</span>
+                                        <span className="text-xs font-semibold text-[#253551] flex items-center"><Users className="w-3 h-3 mr-1" /> {contactsCount.toLocaleString()} Reach</span>
                                     </div>
                                 )}
                             </CardContent>
