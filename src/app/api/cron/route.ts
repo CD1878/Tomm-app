@@ -6,7 +6,7 @@ import { createClient } from '@supabase/supabase-js';
 const resend = new Resend(process.env.RESEND_API_KEY!);
 const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
 // This route acts as our daily cron job
@@ -128,7 +128,10 @@ export async function GET(req: Request) {
 
             // 4. Update the campaign status to 'sent'
             const sendDate = new Date().toISOString();
-            await supabase.from('campaigns').update({ status: 'sent', send_date: sendDate }).eq('id', id);
+            await supabase.rpc('mark_campaign_sent', {
+                p_campaign_id: id,
+                p_send_date: sendDate
+            });
             console.log(`Campaign ${id} successfully processed and marked as sent.`);
         }
 
