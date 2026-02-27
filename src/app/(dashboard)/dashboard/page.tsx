@@ -258,7 +258,7 @@ export default function DashboardPage() {
                 .from('contacts')
                 .select('*', { count: 'exact', head: true })
                 .eq('user_id', user.id)
-                .is('unsubscribed_at', null);
+                .eq('unsubscribed', false);
 
             if (!error && count !== null) {
                 setContactsCount(count);
@@ -544,27 +544,31 @@ export default function DashboardPage() {
                                     </Button>
                                 </div>
 
-                                {/* Analytics Mock Overview */}
+                                {/* Analytics Overview */}
                                 {camp.status === 'sent' ? (
                                     <div className="mt-4 pt-4 border-t border-[#253551]/10 grid grid-cols-3 gap-2 text-center">
                                         <div className="flex flex-col items-center">
                                             <div className="flex items-center tabular-nums text-[#253551] mb-1">
                                                 <Users className="w-3 h-3 mr-1" />
-                                                <span className="text-xs font-bold">{contactsCount.toLocaleString()}</span>
+                                                <span className="text-xs font-bold">{camp.stats_delivered || 0}</span>
                                             </div>
                                             <span className="text-[10px] text-black/40 uppercase tracking-wider">Sent</span>
                                         </div>
                                         <div className="flex flex-col items-center">
                                             <div className="flex items-center tabular-nums text-green-600 mb-1">
                                                 <Eye className="w-3 h-3 mr-1" />
-                                                <span className="text-xs font-bold">{camp.analytics?.openPercent || 58}%</span>
+                                                <span className="text-xs font-bold">
+                                                    {camp.stats_delivered ? Math.round(((camp.stats_opens || 0) / camp.stats_delivered) * 100) : 0}%
+                                                </span>
                                             </div>
                                             <span className="text-[10px] text-black/40 uppercase tracking-wider">Opened</span>
                                         </div>
                                         <div className="flex flex-col items-center">
                                             <div className="flex items-center tabular-nums text-blue-600 mb-1">
                                                 <MousePointerClick className="w-3 h-3 mr-1" />
-                                                <span className="text-xs font-bold">14%</span>
+                                                <span className="text-xs font-bold">
+                                                    {camp.stats_opens ? Math.round(((camp.stats_clicks || 0) / camp.stats_opens) * 100) : 0}%
+                                                </span>
                                             </div>
                                             <span className="text-[10px] text-black/40 uppercase tracking-wider">Clicks</span>
                                         </div>
