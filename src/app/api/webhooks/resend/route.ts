@@ -11,15 +11,21 @@ export async function POST(req: Request) {
         const payload = await req.json();
 
         // Inside payload.data.tags we injected campaign_id in our cron router
-        const tags = payload?.data?.tags || [];
-        const campaignTag = tags.find((t: any) => t.name === 'campaign_id');
+        const tags = payload?.data?.tags;
+        let campaignId = null;
 
-        if (!campaignTag || !campaignTag.value) {
+        if (Array.isArray(tags)) {
+            const campaignTag = tags.find((t: any) => t.name === 'campaign_id');
+            campaignId = campaignTag?.value;
+        } else if (tags && typeof tags === 'object') {
+            campaignId = tags['campaign_id'];
+        }
+
+        if (!campaignId) {
             console.log('Webhook received without campaign_id tag. Ignoring.');
             return NextResponse.json({ success: true, message: 'Ignored: No campaign tag' });
         }
 
-        const campaignId = campaignTag.value;
         const eventType = payload.type;
 
         console.log(`Received Resend Webhook: ${eventType} for Campaign ID: ${campaignId}`);
