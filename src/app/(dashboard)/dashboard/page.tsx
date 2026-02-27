@@ -156,6 +156,21 @@ export default function DashboardPage() {
                 c.month === month ? { ...c, summary: updatedSummary, body: updatedBody } : c
             ));
 
+            const supabase = createClient();
+            const { data: { user } } = await supabase.auth.getUser();
+
+            if (user) {
+                const { data: currentCamp } = await supabase.from('campaigns')
+                    .select('id').eq('user_id', user.id).eq('month', month).single();
+
+                if (currentCamp) {
+                    await supabase.from('campaigns').update({
+                        summary: updatedSummary,
+                        bodyText: updatedBody
+                    }).eq('id', currentCamp.id);
+                }
+            }
+
             const localData = localStorage.getItem('mock_campaigns_state');
             if (localData) {
                 const parsed = JSON.parse(localData);
@@ -414,7 +429,8 @@ export default function DashboardPage() {
                             await supabase.from('campaigns').update({
                                 subject: updated.subject,
                                 summary: updated.summary,
-                                bodyText: updated.body
+                                bodyText: updated.body,
+                                image_url: updated.imageUrl
                             }).eq('id', updated.id);
                         } else if (!user) {
                             // Update local storage
