@@ -91,15 +91,16 @@ export async function POST(req: Request) {
         ${instructionsInjection}
         
         Instructions:
-        1. Analyze the business based on the scraped website content (vibe, menu, unique selling points, if they have a terrace, event spaces, etc.). Extract the business name, physical address, logo URL, and website URL for the global fields.
-        2. Create exactly 12 distinct email campaigns, one for each month of the year (Month 1 = Jan, 2 = Feb, etc).
-        3. Make the body text beautiful, engaging, and structured. Use short paragraphs and warm hospitality greetings. Do not just output one boring summary line. It should read like a premium marketing email.
-        4. IMAGE URL: Scan the provided website markdown for real image links (e.g. .jpg, .png, .webp) that match the theme of the month. CRITICAL: NEVER hallucinate, make up, or use placeholder image URLs (like unsplash source). If you cannot find a valid, real absolute image URL from the scraped context, LEAVE IT UNDEFINED. 
+        1. DEEP BUSINESS ANALYSIS: Analyze the business based on the scraped website content. Extract the core vibe, menu highlights, unique selling points, and crucially: ALL UPCOMING EVENTS, special action pages, agenda items, and CUSTOMER REVIEWS. Extract the business name, address, logo URL, and website URL.
+        2. DYNAMIC TOPIC ENGINE: Create exactly 12 distinct email campaigns (Month 1 = Jan, 2 = Feb, etc). DO NOT just use generic seasonal trends. You MUST base the campaign topics heavily on the actual EVENTS, ACTIONS, and REVIEWS you found on their website. 
+           - E.g., if you found a "Wine Tasting Event" on the site, schedule an email to promote it.
+           - If you found glowing "Customer Reviews" about a specific dish or the terrace, dedicate an email to highlighting that social proof.
+        3. Make the body text beautiful, engaging, high-conversion, and structured. Use short paragraphs and warm hospitality greetings. It should read like a premium, highly targeted marketing email designed to drive reservations.
+        4. IMAGE URL: Scan the provided website markdown for real image links (e.g. .jpg, .png, .webp) that match the theme of the campaign. CRITICAL: NEVER hallucinate, make up, or use placeholder image URLs. If you cannot find a valid, real absolute image URL from the scraped context, LEAVE IT UNDEFINED. 
         5. CALL TO ACTION / BOOKING LINK: You MUST include a clear, prominent booking link or "Reserveer Hier" button at the bottom of the email body text. Use standard HTML link formatting pointing back to the website URL or their reservation system. This is crucial for tracking conversion analytics.
-        6. Tie campaigns to seasonal hospitality trends (e.g., January: Healthy start; February: Valentine's; Spring: Terrace opening; December: Holiday bookings).
-        7. The tone should match the presumed brand voice from the website, UNLESS dictated otherwise by the Global Instructions.
-        8. Provide a short summary of what you deduced about the business in 'scrapedContextSummary'.
-        9. CRITICAL LANGUAGE REQUIREMENT: You MUST generate all text, including the subject, summary (preview text), and bodyText exclusively in this language: ${language || 'Dutch'}. Overwrite any other language defaults.
+        6. The tone should match the presumed brand voice from the website and the positive sentiment from their reviews, UNLESS dictated otherwise by the Global Instructions.
+        7. Provide a short summary of the specific events, reviews, and USPs you deduced and used as input in the 'scrapedContextSummary'.
+        8. CRITICAL LANGUAGE REQUIREMENT: You MUST generate all text, including the subject, summary (preview text), and bodyText exclusively in this language: ${language || 'Dutch'}. Overwrite any other language defaults.
       `,
         });
 
