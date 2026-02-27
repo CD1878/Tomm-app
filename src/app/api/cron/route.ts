@@ -45,9 +45,9 @@ export async function GET(req: Request) {
             // Note: Currently we don't have a rigid 'profiles' table with these fields in the MVP, 
             // so we will fallback to standard defaults if they don't exist.
             const { data: profile } = await supabase.from('profiles').select('*').eq('id', user_id).single();
-            const senderName = profile?.business_name || 'TOMM App';
-            const website = profile?.website_url || '#';
-            const logoUrl = profile?.logo_url || null;
+            const senderName = profile?.business_name || 'Café Het Paardje';
+            const website = profile?.website_url ? `${profile.website_url}/#tebi-reservations` : 'https://www.cafehetpaardje.nl/#tebi-reservations';
+            const logoUrl = profile?.logo_url || "https://static1.squarespace.com/static/65b3b1379d0e202bc26a0b09/t/65b3b6bb22a08118c45aba8d/1706276539946/logo+het+paardje.png";
 
             // Fetch active contacts for this specific tenant via RPC
             const { data: contacts, error: contactsError } = await supabase.rpc('get_contacts_for_user', { p_user_id: user_id });
