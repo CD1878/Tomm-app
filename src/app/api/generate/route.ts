@@ -28,7 +28,7 @@ export async function POST(req: Request) {
         // Initialize Firecrawl inside the handler to prevent static build errors if env var is missing
         const firecrawl = new FirecrawlApp({ apiKey: process.env.FIRECRAWL_API_KEY || 'dummy_key' }) as any;
 
-        const { websiteUrl, globalInstructions, monthlyInstructions } = await req.json();
+        const { websiteUrl, globalInstructions, monthlyInstructions, language } = await req.json();
 
         if (!websiteUrl) {
             return NextResponse.json({ error: 'websiteUrl is required' }, { status: 400 });
@@ -99,6 +99,7 @@ export async function POST(req: Request) {
         6. Tie campaigns to seasonal hospitality trends (e.g., January: Healthy start; February: Valentine's; Spring: Terrace opening; December: Holiday bookings).
         7. The tone should match the presumed brand voice from the website, UNLESS dictated otherwise by the Global Instructions.
         8. Provide a short summary of what you deduced about the business in 'scrapedContextSummary'.
+        9. CRITICAL LANGUAGE REQUIREMENT: You MUST generate all text, including the subject, summary (preview text), and bodyText exclusively in this language: ${language || 'Dutch'}. Overwrite any other language defaults.
       `,
         });
 

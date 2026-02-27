@@ -297,6 +297,9 @@ export default function DashboardPage() {
             // or just rely on the per-month instructions added on this dashboard.
             const globalInstructions = localStorage.getItem('tomm_global_instructions') || '';
 
+            // Fetch customized language from settings
+            const savedLanguage = localStorage.getItem('tomm_default_language') || 'NL';
+
             const response = await fetch('/api/generate', {
                 method: 'POST',
                 headers: {
@@ -305,7 +308,8 @@ export default function DashboardPage() {
                 body: JSON.stringify({
                     websiteUrl: 'https://www.cafehetpaardje.nl/',
                     globalInstructions,
-                    monthlyInstructions
+                    monthlyInstructions,
+                    language: savedLanguage
                 }),
             });
 
