@@ -2,17 +2,16 @@ import { NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { createClient } from '@supabase/supabase-js';
 
-// Initialize Resend
-const resend = new Resend(process.env.RESEND_API_KEY!);
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
-
 // This route acts as our daily cron job
 // Vercel Cron will hit this URL automatically
 export async function GET(req: Request) {
     try {
+        const resend = new Resend(process.env.RESEND_API_KEY!);
+        const supabase = createClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        );
+
         console.log('Cron Job Triggered: Checking for scheduled campaigns to send today...');
 
         // In production, Vercel Cron hits this based on vercel.json (e.g., 5th of every month)
