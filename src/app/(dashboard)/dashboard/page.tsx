@@ -88,6 +88,7 @@ export default function DashboardPage() {
             const { data, error } = await supabase
                 .from('campaigns')
                 .select('*')
+                .eq('user_id', user.id)
                 .order('month', { ascending: true });
 
             if (error) {
