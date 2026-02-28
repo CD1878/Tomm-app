@@ -224,6 +224,11 @@ export default function DashboardPage() {
                 }
 
                 // For MVP: We will save these generated campaigns to the Supabase database
+                if (user) {
+                    // First, clear out any existing campaigns for this user to prevent duplicates
+                    await supabase.from('campaigns').delete().eq('user_id', user.id);
+                }
+
                 for (const campaign of data.data.campaigns) {
                     await supabase.from('campaigns').insert([{
                         user_id: user?.id,
@@ -240,6 +245,10 @@ export default function DashboardPage() {
                 fetchCampaigns(); // Refresh the list from the database
             } else if (data.campaigns && data.campaigns.length > 0) {
                 // Fallback for different response format
+                if (user) {
+                    await supabase.from('campaigns').delete().eq('user_id', user.id);
+                }
+
                 for (const campaign of data.campaigns) {
                     await supabase.from('campaigns').insert([{
                         user_id: user?.id,
