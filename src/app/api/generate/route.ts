@@ -13,7 +13,7 @@ const EmailSchema = z.object({
     heroText: z.string(),
     bodyText: z.string(),
     callToAction: z.string(),
-    imageUrl: z.string().optional().describe('URL of a relevant image extracted from the website context. Must be an absolute URL.'),
+    imageUrl: z.string().nullable().describe('URL of a relevant image extracted from the website context. Must be an absolute URL.'),
 });
 
 const CampaignsSchema = z.object({
@@ -22,7 +22,7 @@ const CampaignsSchema = z.object({
     businessName: z.string().describe("The real name of the restaurant or business"),
     businessAddress: z.string().describe("The physical address of the business"),
     businessWebsite: z.string().describe("The homepage URL of the business"),
-    businessLogo: z.string().optional().describe("Absolute URL to the business logo image, if found. Usually in the header or footer of the website."),
+    businessLogo: z.string().nullable().describe("Absolute URL to the business logo image, if found. Usually in the header or footer of the website."),
 });
 
 export async function POST(req: Request) {
@@ -148,8 +148,8 @@ export async function POST(req: Request) {
            - If you found glowing "Customer Reviews" about a specific dish or the terrace, dedicate an email to highlighting that social proof.
            - CRITICAL PRODUCT FOCUS: Identify the specific products, dishes, or services that customers were most enthusiastic about in the reviews over the past year (the "pearls"). Actively highlight and promote these specific beloved items in the emails.
         3. Make the body text beautiful, engaging, high-conversion, and structured. Use short paragraphs and warm hospitality greetings. It should read like a premium, highly targeted marketing email designed to drive reservations.
-        4. IMAGE URL: Scan the provided website markdown for real image links (e.g. .jpg, .png, .webp) that match the theme of the campaign. CRITICAL: NEVER hallucinate, make up, or use placeholder image URLs. If you cannot find a valid, real absolute image URL from the scraped context, LEAVE IT UNDEFINED. 
-        5. CALL TO ACTION / BOOKING LINK: You MUST include a clear, prominent booking link or "Reserveer Hier" button at the bottom of the email body text. Use standard HTML link formatting pointing back to the website URL or their reservation system. This is crucial for tracking conversion analytics.
+        4. IMAGE URL: Scan the provided website markdown for real image links (e.g. .jpg, .png, .webp) that match the theme of the campaign. CRITICAL: NEVER hallucinate, make up, or use placeholder image URLs. If you cannot find a valid, real absolute image URL from the scraped context, RETURN null.
+        5. CALL TO ACTION / BOOKING LINK: You MUST include a clear, prominent booking link أو "Reserveer Hier" button at the bottom of the email body text. Use standard HTML link formatting pointing back to the website URL or their reservation system. This is crucial for tracking conversion analytics.
         6. The tone should match the presumed brand voice from the website and the positive sentiment from their reviews, UNLESS dictated otherwise by the Global Instructions.
         7. Provide a short summary of the specific events, reviews, and USPs you deduced and used as input in the 'scrapedContextSummary'.
         8. CRITICAL LANGUAGE REQUIREMENT: You MUST generate all text, including the subject, summary (preview text), and bodyText exclusively in this language: ${language || 'Dutch'}. Overwrite any other language defaults.
