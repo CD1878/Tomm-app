@@ -12,13 +12,13 @@ export async function POST(req: Request) {
 
         const resend = new Resend(process.env.RESEND_API_KEY);
 
-        const senderStr = senderName || 'TOMM App';
+        const senderStr = senderName || "Chef's Mail";
         const { data, error } = await resend.emails.send({
             from: `${senderStr} <hallo@mail.tomm.chefdigital.nl>`,
             to: [to],
             // Since we use a verified domain, 'to' can be any email address now.
-            subject: subject || 'Test E-mail van TOMM',
-            html: html || '<p>Dit is een test e-mail vanuit TOMM.</p>',
+            subject: subject || "Test E-mail van Chef's Mail",
+            html: html || "<p>Dit is een test e-mail vanuit Chef's Mail.</p>",
         });
 
         if (error) {

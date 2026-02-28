@@ -228,7 +228,7 @@ export default function SettingsPage() {
         >
             <div>
                 <h1 className="text-3xl font-bold tracking-tight text-[#253551] text-balance mb-2">Settings</h1>
-                <p className="text-black/60 font-light text-pretty">Configure your business profile and audience connections. TOMM uses this data to generate your personalized campaigns.</p>
+                <p className="text-black/60 font-light text-pretty">Configure your business profile and audience connections. Chef's Mail uses this data to generate your personalized campaigns.</p>
             </div>
 
             <Tabs defaultValue="brand" className="w-full">

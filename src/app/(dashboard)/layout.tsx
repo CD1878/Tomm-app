@@ -27,10 +27,10 @@ export default function DashboardLayout({
                 <div className="h-20 flex items-center px-6 border-b border-[#253551]/10">
                     <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
                         <div className="h-8 w-8 bg-[#253551] text-white rounded flex items-center justify-center font-bold text-lg tracking-tighter shadow-sm">
-                            T
+                            CM
                         </div>
                         <span className="font-semibold text-lg tracking-tight text-[#253551]">
-                            TOMM
+                            Chef's Mail
                         </span>
                     </Link>
                 </div>

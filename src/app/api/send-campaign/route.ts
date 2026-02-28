@@ -32,8 +32,7 @@ export async function POST(req: Request) {
 
         // Production dispatch: We can now send to ALL subscribers because we are out of the sandbox.
         // Important: Resend has payload bulk limits and BCC is limited to 50 addresses per request.
-        // We use the batch API which allows up to 100 emails per batch.
-        const senderStr = senderName || 'TOMM App';
+        const senderStr = senderName || "Chef's Mail";
         const BATCH_SIZE = 100;
         let successCount = 0;
 

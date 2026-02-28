@@ -13,10 +13,10 @@ export default function LandingPage() {
             <header className="px-6 lg:px-14 h-24 flex items-center justify-between border-b border-black/5 z-10 backdrop-blur-md bg-white/80 sticky top-0">
                 <div className="flex items-center gap-3">
                     <div className="h-10 w-10 bg-[#253551] text-white rounded-lg flex items-center justify-center font-bold text-xl tracking-tighter shadow-sm">
-                        T
+                        CM
                     </div>
                     <span className="font-semibold text-xl tracking-tight text-[#253551]">
-                        TOMM
+                        Chef's Mail
                     </span>
                 </div>
                 <nav className="hidden md:flex gap-8 text-sm font-medium text-black/60">
@@ -37,7 +37,7 @@ export default function LandingPage() {
                     className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#253551]/5 border border-[#253551]/10 text-[#253551] text-sm font-medium mb-8 backdrop-blur-sm"
                 >
                     <Sparkles className="h-4 w-4 text-[#253551]" />
-                    <span>Top of Mind Marketing for Hospitality</span>
+                    <span>Chef's Mail for Hospitality</span>
                 </motion.div>
 
                 <motion.h1

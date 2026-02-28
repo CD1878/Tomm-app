@@ -6,7 +6,7 @@ import { Toaster } from '@/components/ui/sonner';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'TOMM - Top of Mind Marketing',
+  title: "Chef's Mail - Top of Mind Marketing",
   description: 'AI-driven set-and-forget email marketing for hospitality.',
 };
 

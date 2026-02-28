@@ -94,7 +94,7 @@ export async function GET(req: Request) {
                         </div>
                         
                         <div style="background-color: #f9fafb; padding: 24px; border-top: 1px solid #f3f4f6; text-align: center;">
-                            <p style="font-size: 12px; color: #9CA3AF; margin: 0;">Verzonden via TOMM voor ${senderName}</p>
+                            <p style="font-size: 12px; color: #9CA3AF; margin: 0;">Verzonden via Chef's Mail voor ${senderName}</p>
                             <div style="margin-top: 12px;">
                                 <a href="#" style="color: #6B7280; font-size: 12px; text-decoration: underline;">Uitschrijven</a>
                             </div>

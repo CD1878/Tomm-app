@@ -114,7 +114,7 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
                         </div>
                         
                         <div style="background-color: #f9fafb; padding: 24px; border-top: 1px solid #f3f4f6; text-align: center;">
-                            <p style="font-size: 12px; color: #9CA3AF; margin: 0;">Verzonden via TOMM voor ${businessData?.name || 'jouw restaurant'}</p>
+                            <p style="font-size: 12px; color: #9CA3AF; margin: 0;">Verzonden via Chef's Mail voor ${businessData?.name || 'jouw restaurant'}</p>
                             <div style="margin-top: 12px;">
                                 <a href="#" style="color: #6B7280; font-size: 12px; text-decoration: underline;">Uitschrijven</a>
                             </div>
@@ -128,9 +128,9 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     to: testEmail,
-                    subject: subject || 'Test e-mail vanuit TOMM',
+                    subject: subject || "Test e-mail vanuit Chef's Mail",
                     html: htmlContent,
-                    senderName: businessData?.name || 'TOMM'
+                    senderName: businessData?.name || "Chef's Mail"
                 })
             });
 
@@ -196,7 +196,7 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
                         </div>
                         
                         <div style="background-color: #f9fafb; padding: 24px; border-top: 1px solid #f3f4f6; text-align: center;">
-                            <p style="font-size: 12px; color: #9CA3AF; margin: 0;">Verzonden via TOMM voor ${businessData?.name || 'jouw restaurant'}</p>
+                            <p style="font-size: 12px; color: #9CA3AF; margin: 0;">Verzonden via Chef's Mail voor ${businessData?.name || 'jouw restaurant'}</p>
                             <div style="margin-top: 12px;">
                                 <a href="#" style="color: #6B7280; font-size: 12px; text-decoration: underline;">Uitschrijven</a>
                             </div>
@@ -210,9 +210,9 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    subject: subject || 'Nieuwe E-mail vanuit TOMM',
+                    subject: subject || "Nieuwe E-mail vanuit Chef's Mail",
                     html: htmlContent,
-                    senderName: businessData?.name || 'TOMM'
+                    senderName: businessData?.name || "Chef's Mail"
                 })
             });
 
