@@ -16,8 +16,8 @@ export default function SettingsPage() {
     const [isScraping, setIsScraping] = useState(false);
     const [scrapeSuccess, setScrapeSuccess] = useState(false);
     const [scrapeError, setScrapeError] = useState("");
-    const [websiteUrl, setWebsiteUrl] = useState("https://www.cafehetpaardje.nl/");
-    const [instagramUrl, setInstagramUrl] = useState("https://www.instagram.com/paardcafe/?hl=nl");
+    const [websiteUrl, setWebsiteUrl] = useState("");
+    const [instagramUrl, setInstagramUrl] = useState("");
     const [instructions, setInstructions] = useState("");
     const [defaultLanguage, setDefaultLanguage] = useState("NL");
     const [newEmail, setNewEmail] = useState("");

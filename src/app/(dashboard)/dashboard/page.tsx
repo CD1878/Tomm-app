@@ -233,17 +233,12 @@ export default function DashboardPage() {
                 }));
                 setCampaigns(mappedCampaigns);
             } else {
-                // Fallback to mock data ONLY if the database is completely empty
-                setCampaigns(mockCampaigns);
+                // Return empty array for blank state
+                setCampaigns([]);
             }
         } else {
-            // Unauthenticated bypass mode: use localStorage to persist fake state
-            const localData = localStorage.getItem('mock_campaigns_state');
-            if (localData) {
-                setCampaigns(JSON.parse(localData));
-            } else {
-                setCampaigns(mockCampaigns);
-            }
+            // Unauthenticated bypass mode
+            setCampaigns([]);
         }
         setIsLoading(false);
     };
@@ -370,51 +365,9 @@ export default function DashboardPage() {
             } else {
                 throw new Error("Invalid API response format");
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error generating campaigns:', error);
-            // We know the user doesn't have real API keys yet in the demo,
-            // so we gracefully fallback to the specific Paardje mock data without failing.
-            // Add an artificial delay to simulate the "AI thinking" process for the demo
-            await new Promise((resolve) => setTimeout(resolve, 3500));
-
-            // Save mock data to DB so it persists across refreshes and editor closings
-            const supabase = createClient();
-            const { data: { user } } = await supabase.auth.getUser();
-
-            if (user) {
-                for (const mockCamp of mockCampaigns) {
-                    // Check if already exists to avoid duplicates
-                    const { data: existing } = await supabase.from('campaigns').select('id').eq('month', mockCamp.month).eq('user_id', user.id).single();
-                    if (!existing) {
-                        await supabase.from('campaigns').insert([{
-                            user_id: user.id,
-                            month: mockCamp.month,
-                            month_name: mockCamp.name,
-                            subject: mockCamp.subject,
-                            summary: mockCamp.summary,
-                            bodyText: mockCamp.body,
-                            image_url: mockCamp.imageUrl,
-                            send_date: mockCamp.date,
-                            status: mockCamp.status
-                        }]);
-                    } else {
-                        // Update existing mock campaigns to ensure they get the new full bodies and images
-                        await supabase.from('campaigns').update({
-                            subject: mockCamp.subject,
-                            summary: mockCamp.summary,
-                            bodyText: mockCamp.body,
-                            image_url: mockCamp.imageUrl,
-                            send_date: mockCamp.date,
-                            status: mockCamp.status
-                        }).eq('id', existing.id);
-                    }
-                }
-            } else {
-                // Save to localStorage for demo persistence
-                localStorage.setItem('mock_campaigns_state', JSON.stringify(mockCampaigns));
-            }
-
-            fetchCampaigns();
+            alert("Er is iets misgegaan bij het genereren van de AI campagnes: " + (error.message || "Probeer het later nog eens."));
         } finally {
             setIsGenerating(false);
         }
