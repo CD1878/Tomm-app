@@ -199,7 +199,8 @@ export default function SettingsPage() {
             });
 
             if (!response.ok) {
-                throw new Error("Failed to scrape website.");
+                const errData = await response.json().catch(() => ({}));
+                throw new Error(errData.details?.error || errData.error || errData.message || "Failed to scrape website.");
             }
 
             const data = await response.json();

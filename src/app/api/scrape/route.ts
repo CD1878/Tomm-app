@@ -8,6 +8,11 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'URL is required' }, { status: 400 });
         }
 
+        let targetUrl = url;
+        if (!targetUrl.match(/^https?:\/\//i)) {
+            targetUrl = `https://${targetUrl}`;
+        }
+
         const apiKey = process.env.FIRECRAWL_API_KEY;
         if (!apiKey) {
             return NextResponse.json({ error: 'Firecrawl API key not configured' }, { status: 500 });
@@ -21,7 +26,7 @@ export async function POST(request: Request) {
                 'Authorization': `Bearer ${apiKey}`,
             },
             body: JSON.stringify({
-                url: url,
+                url: targetUrl,
                 formats: ['markdown', 'links'],
             }),
         });
@@ -47,8 +52,12 @@ export async function POST(request: Request) {
                     if (foundLink.startsWith('http')) {
                         reservationUrl = foundLink;
                     } else if (foundLink.startsWith('/') || foundLink.startsWith('#')) {
-                        const baseUrl = new URL(url);
-                        reservationUrl = `${baseUrl.origin}${foundLink.startsWith('/') ? '' : '/'}${foundLink}`;
+                        try {
+                            const baseUrl = new URL(targetUrl);
+                            reservationUrl = `${baseUrl.origin}${foundLink.startsWith('/') ? '' : '/'}${foundLink}`;
+                        } catch (e) {
+                            reservationUrl = '';
+                        }
                     } else {
                         reservationUrl = foundLink;
                     }
