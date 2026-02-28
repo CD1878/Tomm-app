@@ -197,7 +197,8 @@ export default function DashboardPage() {
             });
 
             if (!response.ok) {
-                throw new Error('Failed to generate campaigns');
+                const errData = await response.json().catch(() => ({}));
+                throw new Error(errData.error || errData.message || (typeof errData === 'string' ? errData : 'Failed to generate campaigns'));
             }
 
             const data = await response.json();

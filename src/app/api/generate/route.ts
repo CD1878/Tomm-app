@@ -3,6 +3,8 @@ import FirecrawlApp from '@mendable/firecrawl-js';
 import { generateObject } from 'ai';
 import { openai } from '@ai-sdk/openai';
 import { z } from 'zod';
+import * as cheerio from 'cheerio';
+import TurndownService from 'turndown';
 
 const EmailSchema = z.object({
     month: z.number(),
@@ -34,27 +36,76 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'websiteUrl is required' }, { status: 400 });
         }
 
-        // 1. Scrape the website using Firecrawl (Deep Crawl)
-        console.log(`Starting Deep Crawl: ${websiteUrl}`);
-        const crawlResponse = await firecrawl.crawlUrl(websiteUrl, {
-            limit: 10, // Crawl up to 10 subpages (Home, Menu, Groups, Contact, etc.)
-            scrapeOptions: {
-                formats: ['markdown'],
-                onlyMainContent: true,
-            }
-        });
-
-        if (!crawlResponse.success || !crawlResponse.data) {
-            return NextResponse.json({ error: 'Failed to crawl website' }, { status: 500 });
+        let targetUrl = websiteUrl;
+        if (!targetUrl.match(/^https?:\/\//i)) {
+            targetUrl = `https://${targetUrl}`;
         }
 
-        // Combine all the scraped pages into one massive context document
+        // 1. Scrape the website using Firecrawl (Deep Crawl)
         let websiteContent = "--- COMPILED BUSINESS WEBSITE DATA ---\n\n";
-        for (const page of crawlResponse.data) {
-            if (page.markdown) {
-                websiteContent += `\n\n--- PAGE: ${page.metadata?.title || page.url} ---\n`;
-                websiteContent += page.markdown;
+        console.log(`Starting Deep Crawl: ${targetUrl}`);
+
+        try {
+            const crawlResponse = await firecrawl.crawlUrl(targetUrl, {
+                limit: 10, // Crawl up to 10 subpages (Home, Menu, Groups, Contact, etc.)
+                scrapeOptions: {
+                    formats: ['markdown'],
+                    onlyMainContent: true,
+                }
+            });
+
+            if (!crawlResponse.success || !crawlResponse.data) {
+                throw new Error("Firecrawl API failed or insufficient credits");
             }
+
+            // Combine all the scraped pages into one massive context document
+            for (const page of crawlResponse.data) {
+                if (page.markdown) {
+                    websiteContent += `\n\n--- PAGE: ${page.metadata?.title || page.url} ---\n`;
+                    websiteContent += page.markdown;
+                }
+            }
+        } catch (crawlError: any) {
+            console.log("Firecrawl deep crawl failed. Attempting native Cheerio fallback for homepage...", crawlError.message);
+
+            const fallbackResponse = await fetch(targetUrl, {
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+                    'Accept-Language': 'en-US,en;q=0.9',
+                }
+            });
+
+            if (!fallbackResponse.ok) {
+                return NextResponse.json({ error: `Failed to crawl website. Native fallback HTTP error ${fallbackResponse.status}` }, { status: 500 });
+            }
+            const html = await fallbackResponse.text();
+
+            const $ = cheerio.load(html);
+            const title = $('title').text() || new URL(targetUrl).hostname;
+            const description = $('meta[name="description"]').attr('content') || '';
+
+            // Extract some image URLs to help OpenAI find valid logos/imgs
+            const imageUrls: string[] = [];
+            $('img').each((_, el) => {
+                const src = $(el).attr('src');
+                if (src) {
+                    try {
+                        const absUrl = new URL(src, targetUrl).href;
+                        imageUrls.push(absUrl);
+                    } catch (e) { }
+                }
+            });
+
+            $('script, style, noscript, iframe, nav, footer').remove();
+
+            const turndownService = new TurndownService({ headingStyle: 'atx' });
+            const markdownRaw = turndownService.turndown($('body').html() || '');
+            const markdown = `# ${title}\n\n${description}\n\n${markdownRaw}`;
+
+            websiteContent += `\n\n--- PAGE: ${targetUrl} (FALLBACK SCRAPE) ---\n`;
+            websiteContent += markdown;
+            websiteContent += `\n\n--- FOUND IMAGES FOR CONTEXT ---\n${imageUrls.slice(0, 10).join('\n')}\n`;
         }
 
         // Limit context window to prevent blowing up the OpenAI token limit
