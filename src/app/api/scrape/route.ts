@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+import * as cheerio from 'cheerio';
+import TurndownService from 'turndown';
 
 export async function POST(request: Request) {
     try {
@@ -32,8 +34,76 @@ export async function POST(request: Request) {
         });
 
         if (!response.ok) {
-            const errorData = await response.json();
-            return NextResponse.json({ error: 'Failed to scrape URL', details: errorData }, { status: response.status });
+            console.log("Firecrawl API failed or insufficient credits. Attempting native Cheerio fallback...");
+            try {
+                const fallbackResponse = await fetch(targetUrl, {
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+                        'Accept-Language': 'en-US,en;q=0.9',
+                    }
+                });
+
+                if (!fallbackResponse.ok) {
+                    throw new Error(`Fallback HTTP error ${fallbackResponse.status}`);
+                }
+                const html = await fallbackResponse.text();
+
+                const $ = cheerio.load(html);
+                const title = $('title').text() || new URL(targetUrl).hostname;
+                const description = $('meta[name="description"]').attr('content') || '';
+
+                const links: string[] = [];
+                $('a').each((_, el) => {
+                    const href = $(el).attr('href');
+                    if (href && !href.startsWith('javascript:') && !href.startsWith('mailto:') && !href.startsWith('tel:')) {
+                        links.push(href);
+                    }
+                });
+
+                // Clean the HTML before Turndown
+                $('script, style, noscript, iframe, nav, footer').remove();
+
+                const turndownService = new TurndownService({ headingStyle: 'atx' });
+                const markdownRaw = turndownService.turndown($('body').html() || '');
+                const markdown = `# ${title}\n\n${description}\n\n${markdownRaw}`;
+
+                let reservationUrl = '';
+                const reservationRegex = /(formitable\.com|resengo\.com|zenchef\.com|tebi\.com|guestplan\.com|thefork\.com|book|reserveer|reservation)/i;
+                const foundLink = links.find((link: string) => reservationRegex.test(link));
+
+                if (foundLink) {
+                    if (foundLink.startsWith('http')) {
+                        reservationUrl = foundLink;
+                    } else if (foundLink.startsWith('/') || foundLink.startsWith('#')) {
+                        try {
+                            const baseUrl = new URL(targetUrl);
+                            reservationUrl = `${baseUrl.origin}${foundLink.startsWith('/') ? '' : '/'}${foundLink}`;
+                        } catch (e) {
+                            reservationUrl = '';
+                        }
+                    } else {
+                        reservationUrl = foundLink;
+                    }
+                }
+
+                console.log("Successfully scraped using Cheerio fallback.");
+
+                return NextResponse.json({
+                    success: true,
+                    markdown: markdown,
+                    metadata: { title, description },
+                    links: links,
+                    reservationUrl: reservationUrl,
+                    fallbackUsed: true
+                });
+
+            } catch (fallbackError: any) {
+                console.error("Native Cheerio fallback also failed:", fallbackError);
+                // Return original Firecrawl error if both fail
+                const errorData = await response.json().catch(() => ({}));
+                return NextResponse.json({ error: 'Failed to scrape URL (Both Firecrawl and Fallback failed)', details: errorData }, { status: response.status });
+            }
         }
 
         const data = await response.json();
