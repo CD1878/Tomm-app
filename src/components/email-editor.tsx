@@ -322,7 +322,7 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
         const fetchSubscriberCount = async () => {
             const supabase = createClient();
             const { data: { user } } = await supabase.auth.getUser();
-            const userId = user ? user.id : '474a5578-98f9-467b-ae73-f61715d567a5';
+            const userId = user ? user.id : null;
 
             const { count, error } = await supabase
                 .from('contacts')

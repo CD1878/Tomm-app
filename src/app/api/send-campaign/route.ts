@@ -1,12 +1,8 @@
 import { NextResponse } from 'next/server';
 import { Resend } from 'resend';
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from '@/utils/supabase/server';
 
 const resend = new Resend(process.env.RESEND_API_KEY || 're_mock_key');
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
 
 export async function POST(req: Request) {
     try {
@@ -17,11 +13,17 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Missing subject or html content' }, { status: 400 });
         }
 
-        // For this SaaS MVP demo, we will execute the dispatch for our primary specific demo user (Het Paardje / Chef Digital):
-        const demoUserId = '474a5578-98f9-467b-ae73-f61715d567a5';
+        const supabase = await createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+
+        if (!user) {
+            return NextResponse.json({ error: 'Unauthorized. You must be logged in to send campaigns.' }, { status: 401 });
+        }
+
+        const activeUserId = user.id;
 
         // Fetch active subscriber emails dynamically from the SaaS Contacts Table without exposing other tenants
-        const { data: contacts, error: dbError } = await supabase.rpc('get_contacts_for_user', { p_user_id: demoUserId });
+        const { data: contacts, error: dbError } = await supabase.rpc('get_contacts_for_user', { p_user_id: activeUserId });
 
         if (dbError || !contacts || contacts.length === 0) {
             return NextResponse.json({ error: 'No active contacts found for this tenant. Skipping send.' }, { status: 400 });

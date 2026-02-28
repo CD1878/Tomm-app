@@ -177,7 +177,7 @@ export default function DashboardPage() {
             const { data: { user } } = await supabase.auth.getUser();
 
             // Fetch customized language and instructions from the user's cloud profile
-            const { data: profile } = await supabase.from('profiles').select('*').eq('id', user ? user.id : '474a5578-98f9-467b-ae73-f61715d567a5').single();
+            const { data: profile } = await supabase.from('profiles').select('*').eq('id', user ? user.id : null).single();
 
             const globalInstructions = profile?.global_instructions || '';
             const savedLanguage = profile?.default_language || 'NL';

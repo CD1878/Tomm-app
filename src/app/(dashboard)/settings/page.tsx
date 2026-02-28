@@ -34,7 +34,7 @@ export default function SettingsPage() {
     useEffect(() => {
         const fetchProfileAndContacts = async () => {
             const { data: { user } } = await supabase.auth.getUser();
-            const userId = user ? user.id : '474a5578-98f9-467b-ae73-f61715d567a5';
+            const userId = user ? user.id : null;
 
             // Fetch profile data
             const { data: profile } = await supabase.from('profiles').select('*').eq('id', userId).single();
@@ -70,7 +70,7 @@ export default function SettingsPage() {
     const handleAddSubscriber = async () => {
         if (!newEmail || !newEmail.includes('@')) return;
         const { data: { user } } = await supabase.auth.getUser();
-        const userId = user ? user.id : '474a5578-98f9-467b-ae73-f61715d567a5';
+        const userId = user ? user.id : null;
 
         const { data, error } = await supabase.from('contacts').insert([{
             user_id: userId,
@@ -93,7 +93,7 @@ export default function SettingsPage() {
 
     const handleRemoveSubscriber = async (emailToRemove: string) => {
         const { data: { user } } = await supabase.auth.getUser();
-        const userId = user ? user.id : '474a5578-98f9-467b-ae73-f61715d567a5';
+        const userId = user ? user.id : null;
 
         const { error } = await supabase.from('contacts').delete().eq('user_id', userId).eq('email', emailToRemove);
         if (!error) {
@@ -106,7 +106,7 @@ export default function SettingsPage() {
         if (!confirm("Weet je zeker dat je ALLE contacten wilt verwijderen? Dit kan niet ongedaan worden gemaakt.")) return;
         setIsDeletingAll(true);
         const { data: { user } } = await supabase.auth.getUser();
-        const userId = user ? user.id : '474a5578-98f9-467b-ae73-f61715d567a5';
+        const userId = user ? user.id : null;
 
         const { error } = await supabase.from('contacts').delete().eq('user_id', userId);
         if (!error) {
@@ -141,7 +141,7 @@ export default function SettingsPage() {
             if (newEmails.length > 0) {
                 const uniqueEmails = Array.from(new Set(newEmails));
                 const { data: { user } } = await supabase.auth.getUser();
-                const userId = user ? user.id : '474a5578-98f9-467b-ae73-f61715d567a5';
+                const userId = user ? user.id : null;
 
                 const inserts = uniqueEmails.map(email => ({
                     user_id: userId,
