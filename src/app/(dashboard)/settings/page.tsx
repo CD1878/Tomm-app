@@ -266,13 +266,14 @@ export default function SettingsPage() {
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="instagram" className="text-[#253551] font-medium">Instagram Handle</Label>
+                                <Label htmlFor="instagram" className="text-[#253551] font-medium">Instagram Handle (bijv. @cafepaardje of volledige link)</Label>
                                 <div className="relative group">
                                     <Instagram className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-black/40 group-focus-within:text-[#253551] transition-colors" />
                                     <Input
                                         id="instagram"
                                         value={instagramUrl}
                                         onChange={(e) => setInstagramUrl(e.target.value)}
+                                        placeholder="@restaurantnaam of www.instagram.com/..."
                                         className="pl-10 bg-white border-[#253551]/20 focus-visible:ring-1 focus-visible:ring-[#253551] text-black placeholder:text-black/40 h-11"
                                     />
                                 </div>

@@ -204,6 +204,25 @@ export default function DashboardPage() {
             const data = await response.json();
 
             if (data.data?.campaigns && data.data.campaigns.length > 0) {
+
+                // Update the user's profile with the automatically extracted business info (logo, name, etc.)
+                if (user) {
+                    await supabase.from('profiles').update({
+                        business_name: data.data.businessName || profile?.business_name,
+                        logo_url: data.data.businessLogo || profile?.logo_url,
+                        address: data.data.businessAddress || profile?.address
+                    }).eq('id', user.id);
+
+                    // Update local state immediately so EmailEditor picks it up
+                    setBusinessInfo({
+                        name: data.data.businessName || profile?.business_name || 'Your Hospitality Business',
+                        logoUrl: data.data.businessLogo || profile?.logo_url || '',
+                        website: targetWebsite,
+                        address: data.data.businessAddress || profile?.address || '',
+                        zipCode: profile?.zip_code || ''
+                    });
+                }
+
                 // For MVP: We will save these generated campaigns to the Supabase database
                 for (const campaign of data.data.campaigns) {
                     await supabase.from('campaigns').insert([{
