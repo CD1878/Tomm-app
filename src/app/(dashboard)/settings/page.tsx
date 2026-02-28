@@ -42,7 +42,7 @@ export default function SettingsPage() {
                 if (profile.global_instructions) setInstructions(profile.global_instructions);
                 if (profile.default_language) setDefaultLanguage(profile.default_language);
                 if (profile.website_url) setWebsiteUrl(profile.website_url);
-                // (Optional) We aren't storing Instagram URL in the DB schema yet, so leave it or add it later
+                if (profile.instagram_url) setInstagramUrl(profile.instagram_url);
             }
 
             const { data } = await supabase.from('contacts').select('*').eq('user_id', userId).order('created_at', { ascending: false });
@@ -62,6 +62,7 @@ export default function SettingsPage() {
             website_url: websiteUrl,
             global_instructions: instructions,
             default_language: defaultLanguage,
+            instagram_url: instagramUrl,
             updated_at: new Date().toISOString()
         });
     };
