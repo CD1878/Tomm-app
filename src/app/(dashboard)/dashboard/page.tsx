@@ -225,8 +225,12 @@ export default function DashboardPage() {
 
                 // For MVP: We will save these generated campaigns to the Supabase database
                 if (user) {
-                    // First, clear out any existing campaigns for this user to prevent duplicates
-                    await supabase.from('campaigns').delete().eq('user_id', user.id);
+                    // Call the secure backend to wipe all existing campaigns for this user, bypassing RLS
+                    await fetch('/api/campaigns/clear', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ userId: user.id })
+                    });
                 }
 
                 for (const campaign of data.data.campaigns) {
@@ -246,7 +250,11 @@ export default function DashboardPage() {
             } else if (data.campaigns && data.campaigns.length > 0) {
                 // Fallback for different response format
                 if (user) {
-                    await supabase.from('campaigns').delete().eq('user_id', user.id);
+                    await fetch('/api/campaigns/clear', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ userId: user.id })
+                    });
                 }
 
                 for (const campaign of data.campaigns) {
