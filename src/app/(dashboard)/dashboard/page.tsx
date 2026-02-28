@@ -38,10 +38,10 @@ export default function DashboardPage() {
             const prompt = monthlyInstructions[month] || "Verbeterd op basis van feedback.";
             const isADE = prompt.toLowerCase().includes("ade") || prompt.toLowerCase().includes("amsterdam dance event");
 
-            const updatedSummary = isADE ? "Speciale ADE borrels & bites op het Gerard Douplein!" : `Speciaal voor jullie: ${prompt.substring(0, 30)}...`;
+            const updatedSummary = isADE ? "Speciale ADE borrels & bites!" : `Speciaal voor jullie: ${prompt.substring(0, 30)}...`;
             const updatedBody = isADE
-                ? "Beste party people,\n\nIn oktober barst Amsterdam weer los tijdens het Amsterdam Dance Event! Tussen alle feestjes door moet er natuurlijk ook goed gegeten (en gedronken) worden.\n\nDaarom serveren wij deze hele week speciale ADE Recovery bites en espresso martini's op het Gerard Douplein. Kom lekker crashen en bijkomen met je vrienden in de knusse sfeer van Het Paardje.\n\nZien we jullie snel?\n\nLiefs,\nTeam Het Paardje"
-                : `Beste gasten,\n\nWe heten je van harte welkom deze maand! ${prompt}\n\nHopelijk zien we jullie snel weer op ons terras of gezellig binnen aan de bar voor een koud biertje en de fameuze bitterballen.\n\nTot dan!\n\nLiefs,\nTeam Het Paardje`;
+                ? `Beste party people,\n\nIn oktober barst Amsterdam weer los tijdens het Amsterdam Dance Event! Tussen alle feestjes door moet er natuurlijk ook goed gegeten (en gedronken) worden.\n\nDaarom serveren wij deze hele week speciale ADE Recovery gerechten. Kom lekker crashen en bijkomen met je vrienden in de knusse sfeer van ${businessInfo?.name || 'ons restaurant'}.\n\nZien we jullie snel?\n\nLiefs,\nTeam ${businessInfo?.name || 'Restaurant'}`
+                : `Beste gasten,\n\nWe heten je van harte welkom deze maand! ${prompt}\n\nHopelijk zien we jullie snel weer op ons terras of gezellig binnen aan de bar.\n\nTot dan!\n\nLiefs,\nTeam ${businessInfo?.name || 'Restaurant'}`;
 
             setCampaigns(prev => prev.map(c =>
                 c.month === month ? { ...c, summary: updatedSummary, body: updatedBody } : c
@@ -181,7 +181,13 @@ export default function DashboardPage() {
 
             const globalInstructions = profile?.global_instructions || '';
             const savedLanguage = profile?.default_language || 'NL';
-            const targetWebsite = profile?.website_url || 'https://www.cafehetpaardje.nl/';
+            const targetWebsite = profile?.website_url || '';
+
+            if (!targetWebsite) {
+                alert("Vul eerst je Website URL in bij Settings voordat je campagnes genereert!");
+                setIsGenerating(false);
+                return;
+            }
 
             const response = await fetch('/api/generate', {
                 method: 'POST',
@@ -207,11 +213,13 @@ export default function DashboardPage() {
 
                 // Update the user's profile with the automatically extracted business info (logo, name, etc.)
                 if (user) {
-                    await supabase.from('profiles').update({
+                    await supabase.from('profiles').upsert({
+                        id: user.id,
                         business_name: data.data.businessName || profile?.business_name,
                         logo_url: data.data.businessLogo || profile?.logo_url,
-                        address: data.data.businessAddress || profile?.address
-                    }).eq('id', user.id);
+                        address: data.data.businessAddress || profile?.address,
+                        updated_at: new Date().toISOString()
+                    });
 
                     // Update local state immediately so EmailEditor picks it up
                     setBusinessInfo({
@@ -406,7 +414,7 @@ export default function DashboardPage() {
                                 )}
                                 <div className="mt-2 text-black/80 text-sm overflow-hidden flex-1 relative">
                                     <p className="whitespace-pre-wrap line-clamp-[8] pb-8 leading-relaxed">
-                                        {camp.body || `Hey there,\n\n${camp.summary}\n\nReserveer Hier: https://www.cafehetpaardje.nl\n\nCheers,\n[Your Restaurant]`}
+                                        {camp.body || `Hey there,\n\n${camp.summary}\n\nReserveer Hier: ${businessInfo?.website || '#'}\n\nCheers,\nTeam ${businessInfo?.name || 'Restaurant'}`}
                                     </p>
                                     <div className="absolute bottom-0 left-0 w-full h-12 bg-gradient-to-t from-white to-transparent pointer-events-none" />
                                 </div>

@@ -57,11 +57,11 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
             if (newLang === "EN") {
                 setSubject("Spring is in the air! 🌷");
                 setSummary("First sunny days on the Gerard Douplein terrace. Get ready!");
-                setBody("Hi everyone,\n\nCan you feel it? The days are getting longer and the sun is showing its face again on the Gerard Douplein!\n\nOur terrace is slowly becoming the hottest spot in De Pijp again. High time to leave that winter coat at home and enjoy the first real rays of sunshine with an ice-cold beer in your hand.\n\nSee you soon on the terrace!\n\nLove,\nTeam Het Paardje");
+                setBody(`Hi everyone,\n\nCan you feel it? The days are getting longer and the sun is showing its face again!\n\nOur place is slowly becoming the hottest spot again. High time to leave that winter coat at home and enjoy the first real rays of sunshine with an ice-cold drink in your hand.\n\nSee you soon!\n\nLove,\nTeam ${businessData?.name || 'Restaurant'}`);
             } else {
                 setSubject(campaign.subject || "Lente in je Bol! 🌷");
-                setSummary(campaign.summary || "De eerste zonnige dagen op het Gerard Douplein terras. Maak je klaar!");
-                setBody(campaign.body || "Hi allemaal,\n\nVoelen jullie het ook? De dagen worden langer en de zon laat zich weer vaker zien op het Gerard Douplein!\n\nOns terras wordt langzaam weer de warmste plek van De Pijp. Hoog tijd om die winterjas thuis te laten en te genieten van de eerste échte zonnestralen met een ijskoud biertje in je hand.\n\nTot snel op het terras!\n\nLiefs,\nTeam Het Paardje");
+                setSummary(campaign.summary || "De eerste zonnige dagen komen eraan. Maak je klaar!");
+                setBody(campaign.body || `Hi allemaal,\n\nVoelen jullie het ook? De dagen worden langer en de zon laat zich weer vaker zien!\n\nOnze zaak wordt langzaam weer de warmste plek van de stad. Hoog tijd om die winterjas thuis te laten en te genieten van de eerste échte zonnestralen met een ijskoud drankje in je hand.\n\nTot snel!\n\nLiefs,\nTeam ${businessData?.name || 'Restaurant'}`);
             }
             setIsTranslating(false);
         }, 1500);
