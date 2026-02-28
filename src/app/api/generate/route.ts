@@ -41,6 +41,39 @@ export async function POST(req: Request) {
             targetUrl = `https://${targetUrl}`;
         }
 
+        // 0. Extract Logo Explicitly using Cheerio to ensure it's always found
+        let overrideLogoUrl = null;
+        try {
+            const logoFetch = await fetch(targetUrl, {
+                headers: { 'User-Agent': 'Mozilla/5.0' }
+            });
+            if (logoFetch.ok) {
+                const logoHtml = await logoFetch.text();
+                const $logo = cheerio.load(logoHtml);
+
+                const ogImage = $logo('meta[property="og:image"]').attr('content');
+                const relIcon = $logo('link[rel="icon"], link[rel="shortcut icon"], link[rel="apple-touch-icon"]').first().attr('href');
+                let imgLogo: string | null = null;
+                $logo('img').each((_, el) => {
+                    const src = $logo(el).attr('src') || '';
+                    const alt = $logo(el).attr('alt') || '';
+                    const className = $logo(el).attr('class') || '';
+                    if (!imgLogo && (src.toLowerCase().includes('logo') || alt.toLowerCase().includes('logo') || className.toLowerCase().includes('logo'))) {
+                        imgLogo = src;
+                    }
+                });
+
+                let bestLogo = ogImage || imgLogo || relIcon;
+                if (bestLogo) {
+                    try {
+                        overrideLogoUrl = new URL(bestLogo, targetUrl).href;
+                    } catch (e) { }
+                }
+            }
+        } catch (e) {
+            console.log("Failed to extract explicit logo", e);
+        }
+
         // 1. Scrape the website using Firecrawl (Deep Crawl)
         let websiteContent = "--- COMPILED BUSINESS WEBSITE DATA ---\n\n";
         console.log(`Starting Deep Crawl: ${targetUrl}`);
@@ -128,6 +161,23 @@ export async function POST(req: Request) {
                 }
             }
         }
+
+        if (overrideLogoUrl) {
+            instructionsInjection += `\nCRITICAL LOGO INSTRUCTION: The official business logo URL is "${overrideLogoUrl}". You MUST return exactly this URL for the 'businessLogo' field.\n`;
+        }
+
+        instructionsInjection += `\nCRITICAL IMAGE INSTRUCTION: If you CANNOT find a high-quality, absolute image URL from the scraped website context for a campaign month, YOU MUST USE ONE OF THESE FALLBACK IMAGES. NEVER return null and NEVER hallucinate a broken URL. Pick the one that makes the most sense:
+- https://images.unsplash.com/photo-1414235077428-33898ed1e829?auto=format&fit=crop&q=80 (Fine dining / Food)
+- https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?auto=format&fit=crop&q=80 (Restaurant interior)
+- https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&q=80 (People dining)
+- https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&q=80 (Wine and food)
+- https://images.unsplash.com/photo-1525610553991-2bede1a236e2?auto=format&fit=crop&q=80 (Cafe / Drinks)
+- https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&q=80 (Bar / Cocktails)
+- https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&q=80 (Seating / Atmosphere)
+- https://images.unsplash.com/photo-1424847651672-bf20a4b0982b?auto=format&fit=crop&q=80 (Group dining outdoors)
+- https://images.unsplash.com/photo-1498654896293-37aacf113fd9?auto=format&fit=crop&q=80 (Dessert / Cake)
+- https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&q=80 (Chef plating)
+- https://images.unsplash.com/photo-1482049016688-2d3e1b311543?auto=format&fit=crop&q=80 (Lunch / Sandwich)\n`;
 
         const { object } = await generateObject({
             model: openai('gpt-4o'),
