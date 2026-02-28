@@ -136,6 +136,8 @@ export default function DashboardPage() {
     const [monthlyInstructions, setMonthlyInstructions] = useState<Record<number, string>>({});
     const [isRegeneratingMonth, setIsRegeneratingMonth] = useState<Record<number, boolean>>({});
     const [approvingCampaignId, setApprovingCampaignId] = useState<number | null>(null);
+    const [businessInfo, setBusinessInfo] = useState<{ name: string, logoUrl: string, website: string, address?: string, zipCode?: string } | null>(null);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
     const [contactsCount, setContactsCount] = useState<number>(0);
 
     const handleRegenerateMonth = async (month: number) => {
@@ -186,10 +188,23 @@ export default function DashboardPage() {
     };
 
     const fetchCampaigns = async () => {
+        setIsLoading(true);
         const supabase = createClient();
         const { data: { user } } = await supabase.auth.getUser();
 
         if (user) {
+            // First fetch the user's business profile
+            const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+            if (profile) {
+                setBusinessInfo({
+                    name: profile.business_name || 'Your Hospitality Business',
+                    logoUrl: profile.logo_url || '',
+                    website: profile.website_url || 'https://example.com',
+                    address: profile.address || '',
+                    zipCode: profile.zip_code || ''
+                });
+            }
+
             const { data, error } = await supabase
                 .from('campaigns')
                 .select('*')
@@ -211,7 +226,10 @@ export default function DashboardPage() {
                     imageUrl: dbCamp.image_url,
                     status: dbCamp.status,
                     date: dbCamp.send_date,
-                    analytics: dbCamp.status === 'sent' ? mockAnalyticsStats : undefined
+                    stats_opens: dbCamp.stats_opens,
+                    stats_clicks: dbCamp.stats_clicks,
+                    stats_delivered: dbCamp.stats_delivered,
+                    analytics: undefined // We will rely on real stats now
                 }));
                 setCampaigns(mappedCampaigns);
             } else {
@@ -227,6 +245,7 @@ export default function DashboardPage() {
                 setCampaigns(mockCampaigns);
             }
         }
+        setIsLoading(false);
     };
 
     const handleApproveCampaign = async (month: number) => {
@@ -292,13 +311,12 @@ export default function DashboardPage() {
             const supabase = createClient();
             const { data: { user } } = await supabase.auth.getUser();
 
-            // In a real app the global instructions would be fetched from Supabase profiles table,
-            // but for this MVP iteration, we will grab it from the settings page if it was saved locally,
-            // or just rely on the per-month instructions added on this dashboard.
-            const globalInstructions = localStorage.getItem('tomm_global_instructions') || '';
+            // Fetch customized language and instructions from the user's cloud profile
+            const { data: profile } = await supabase.from('profiles').select('*').eq('id', user ? user.id : '474a5578-98f9-467b-ae73-f61715d567a5').single();
 
-            // Fetch customized language from settings
-            const savedLanguage = localStorage.getItem('tomm_default_language') || 'NL';
+            const globalInstructions = profile?.global_instructions || '';
+            const savedLanguage = profile?.default_language || 'NL';
+            const targetWebsite = profile?.website_url || 'https://www.cafehetpaardje.nl/';
 
             const response = await fetch('/api/generate', {
                 method: 'POST',
@@ -306,7 +324,7 @@ export default function DashboardPage() {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    websiteUrl: 'https://www.cafehetpaardje.nl/',
+                    websiteUrl: targetWebsite,
                     globalInstructions,
                     monthlyInstructions,
                     language: savedLanguage
@@ -403,16 +421,6 @@ export default function DashboardPage() {
     };
 
     if (selectedCampaign) {
-
-        // Use generic fallback or attempt to extract from global settings if available
-        const businessData = {
-            name: "Café Het Paardje",
-            address: "Gerard Douplein 1",
-            zipCode: "1072 VR, Amsterdam",
-            website: "www.cafehetpaardje.nl",
-            logoUrl: "https://static1.squarespace.com/static/65b3b1379d0e202bc26a0b09/t/65b3b6bb22a08118c45aba8d/1706276539946/logo+het+paardje.png"
-        };
-
         return (
             <div className="w-full bg-[#f8f9fa] overflow-hidden p-6 -mt-8 relative">
                 <Button
@@ -424,7 +432,13 @@ export default function DashboardPage() {
                 </Button>
                 <EmailEditor
                     campaign={selectedCampaign}
-                    businessData={businessData}
+                    businessData={businessInfo || {
+                        name: "Your Restaurant",
+                        logoUrl: "",
+                        website: "",
+                        address: "",
+                        zipCode: ""
+                    }}
                     onSave={async (updated) => {
                         const supabase = createClient();
                         const { data: { user } } = await supabase.auth.getUser();
@@ -546,6 +560,11 @@ export default function DashboardPage() {
                                 </div>
 
                                 <div className="mt-auto pt-4 border-t border-[#253551]/10">
+                                    <h2 className="text-xl font-bold text-[#253551] mb-2">{camp.month_name} Campagne</h2>
+                                    <p className="text-black/60 font-light text-sm">
+                                        This draft email is customized based on the {businessInfo?.name || 'Your Business'} brand voice,
+                                        recent reviews, and seasonality.
+                                    </p>
                                     <Label className="text-xs font-semibold text-[#253551] mb-2 block">Custom Instructions for {camp.name}</Label>
                                     <Textarea
                                         placeholder={`e.g. Focus on our new terrace this month...`}
@@ -643,25 +662,25 @@ export default function DashboardPage() {
                                                             {/* Recipients */}
                                                             <div>
                                                                 <div className="flex items-center justify-between text-xs font-semibold italic text-[#6B7280] mb-3">Recipients <HelpCircle className="w-3 h-3" /></div>
-                                                                <div className="text-4xl font-semibold mb-3 tracking-tight text-[#111827]">{camp.analytics?.recipients}</div>
+                                                                <div className="text-4xl font-semibold mb-3 tracking-tight text-[#111827]">{camp.stats_delivered || 0}</div>
                                                                 <div className="text-[11px] text-[#6B7280] flex items-center gap-2 font-medium">
-                                                                    <span className="bg-[#E5E7EB]/50 px-2 py-0.5 rounded text-[#374151]">{camp.analytics?.deliveredPercent}%</span> delivered
+                                                                    <span className="bg-[#E5E7EB]/50 px-2 py-0.5 rounded text-[#374151]">100%</span> delivered
                                                                 </div>
                                                             </div>
                                                             {/* Orders */}
                                                             <div>
                                                                 <div className="flex items-center justify-between text-xs font-semibold italic text-[#6B7280] mb-3">Orders <HelpCircle className="w-3 h-3" /></div>
-                                                                <div className="text-4xl font-semibold mb-3 tracking-tight text-[#111827]">{camp.analytics?.orders}</div>
+                                                                <div className="text-4xl font-semibold mb-3 tracking-tight text-[#111827]">0</div>
                                                                 <div className="text-[11px] text-[#6B7280] flex items-center gap-2 font-medium">
-                                                                    <span className="bg-[#E5E7EB]/50 px-2 py-0.5 rounded text-[#374151]">€{camp.analytics?.revenue}</span> revenue
+                                                                    <span className="bg-[#E5E7EB]/50 px-2 py-0.5 rounded text-[#374151]">€0</span> revenue
                                                                 </div>
                                                             </div>
                                                             {/* Unsubscribes */}
                                                             <div>
                                                                 <div className="flex items-center justify-between text-xs font-semibold italic text-[#6B7280] mb-3">Unsubscribes <HelpCircle className="w-3 h-3" /></div>
-                                                                <div className="text-4xl font-semibold mb-3 tracking-tight text-[#111827]">{camp.analytics?.unsubscribes}</div>
+                                                                <div className="text-4xl font-semibold mb-3 tracking-tight text-[#111827]">0</div>
                                                                 <div className="text-[11px] text-[#6B7280] flex items-center gap-2 font-medium">
-                                                                    <span className="bg-[#E5E7EB]/50 px-2 py-0.5 rounded text-[#374151]">{camp.analytics?.unsubPercent} %</span>
+                                                                    <span className="bg-[#E5E7EB]/50 px-2 py-0.5 rounded text-[#374151]">0.0 %</span>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -671,16 +690,20 @@ export default function DashboardPage() {
                                                             <div className="flex flex-col gap-10">
                                                                 <div>
                                                                     <div className="flex items-center justify-between text-xs font-semibold italic text-[#6B7280] mb-3">Opens <HelpCircle className="w-3 h-3" /></div>
-                                                                    <div className="text-4xl font-semibold mb-3 tracking-tight text-[#111827]">{camp.analytics?.opens}</div>
+                                                                    <div className="text-4xl font-semibold mb-3 tracking-tight text-[#111827]">{camp.stats_opens || 0}</div>
                                                                     <div className="text-[11px] text-[#6B7280] flex items-center gap-2 font-medium">
-                                                                        <span className="bg-[#E5E7EB]/50 px-2 py-0.5 rounded text-[#374151]">{camp.analytics?.openPercent} %</span>
+                                                                        <span className="bg-[#E5E7EB]/50 px-2 py-0.5 rounded text-[#374151]">
+                                                                            {camp.stats_delivered ? Math.round(((camp.stats_opens || 0) / camp.stats_delivered) * 100) : 0} %
+                                                                        </span>
                                                                     </div>
                                                                 </div>
                                                                 <div>
                                                                     <div className="flex items-center justify-between text-xs font-semibold italic text-[#6B7280] mb-3">Visits <HelpCircle className="w-3 h-3" /></div>
-                                                                    <div className="text-4xl font-semibold mb-3 tracking-tight text-[#111827]">{camp.analytics?.visits}</div>
+                                                                    <div className="text-4xl font-semibold mb-3 tracking-tight text-[#111827]">{camp.stats_clicks || 0}</div>
                                                                     <div className="text-[11px] text-[#6B7280] flex items-center gap-2 font-medium">
-                                                                        <span className="bg-[#E5E7EB]/50 px-2 py-0.5 rounded text-[#374151]">{camp.analytics?.visitsPercent} %</span>
+                                                                        <span className="bg-[#E5E7EB]/50 px-2 py-0.5 rounded text-[#374151]">
+                                                                            {camp.stats_opens ? Math.round(((camp.stats_clicks || 0) / camp.stats_opens) * 100) : 0} %
+                                                                        </span>
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -696,8 +719,9 @@ export default function DashboardPage() {
                                                                     {/* Null baseline */}
                                                                     <div className="absolute -left-4 -bottom-[6px] text-[10px] text-[#9CA3AF]">0</div>
 
-                                                                    {camp.analytics?.hourlyOpens.map((count: number, i: number) => (
-                                                                        <div key={i} className="flex-1 bg-[#1877F2] hover:bg-[#1877F2]/80 transition-colors flex flex-col justify-end group relative rounded-t-[1px]" style={{ height: `${Math.max(1, (count / 800) * 100)}%` }}>
+                                                                    {/* Since we don't track hourly graphs yet, we just render an empty line or mock for visual */}
+                                                                    {[12, 11, 4, 6, 2, 4, 1, 3, 2, 0, 5, 2, 1, 0, 0, 0, 0, 0, 0].map((count: number, i: number) => (
+                                                                        <div key={i} className="flex-1 bg-[#1877F2]/20 hover:bg-[#1877F2]/80 transition-colors flex flex-col justify-end group relative rounded-t-[1px]" style={{ height: `${Math.max(1, (count / 800) * 100)}%` }}>
                                                                             <div className="absolute -bottom-5 w-full text-center text-[9px] text-[#9CA3AF]">{i}</div>
                                                                         </div>
                                                                     ))}

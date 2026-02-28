@@ -16,7 +16,7 @@ import { createClient } from '@/utils/supabase/client';
 
 interface EmailEditorProps {
     campaign: any;
-    businessData: { name: string; address: string; zipCode: string; website: string; logoUrl?: string };
+    businessData: { name: string; address?: string; zipCode?: string; website: string; logoUrl?: string };
     onSave: (updatedCampaign: any) => void;
     onCancel: () => void;
 }

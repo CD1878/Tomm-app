@@ -32,26 +32,39 @@ export default function SettingsPage() {
 
     // Load saved instructions on mount
     useEffect(() => {
-        const savedInstructions = localStorage.getItem('tomm_global_instructions');
-        if (savedInstructions) {
-            setInstructions(savedInstructions);
-        }
-        const savedLanguage = localStorage.getItem('tomm_default_language');
-        if (savedLanguage) {
-            setDefaultLanguage(savedLanguage);
-        }
-
-        const fetchContacts = async () => {
+        const fetchProfileAndContacts = async () => {
             const { data: { user } } = await supabase.auth.getUser();
             const userId = user ? user.id : '474a5578-98f9-467b-ae73-f61715d567a5';
+
+            // Fetch profile data
+            const { data: profile } = await supabase.from('profiles').select('*').eq('id', userId).single();
+            if (profile) {
+                if (profile.global_instructions) setInstructions(profile.global_instructions);
+                if (profile.default_language) setDefaultLanguage(profile.default_language);
+                if (profile.website_url) setWebsiteUrl(profile.website_url);
+                // (Optional) We aren't storing Instagram URL in the DB schema yet, so leave it or add it later
+            }
 
             const { data } = await supabase.from('contacts').select('*').eq('user_id', userId).order('created_at', { ascending: false });
             if (data) {
                 setSubscribers(data.map(c => ({ email: c.email, source: c.source || 'Website Form', date: new Date(c.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) })));
             }
         };
-        fetchContacts();
+        fetchProfileAndContacts();
     }, []);
+
+    const handleSaveSettings = async () => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        await supabase.from('profiles').upsert({
+            id: user.id,
+            website_url: websiteUrl,
+            global_instructions: instructions,
+            default_language: defaultLanguage,
+            updated_at: new Date().toISOString()
+        });
+    };
 
     const handleAddSubscriber = async () => {
         if (!newEmail || !newEmail.includes('@')) return;
@@ -175,10 +188,8 @@ export default function SettingsPage() {
         setScrapeSuccess(false);
         setScrapeError("");
 
-        // Save global instructions to local storage for the dashboard to use
-        localStorage.setItem('tomm_global_instructions', instructions);
-        localStorage.setItem('tomm_default_language', defaultLanguage);
-        localStorage.setItem('tomm_website_url', websiteUrl);
+        // Save global instructions to database
+        await handleSaveSettings();
 
         try {
             const response = await fetch('/api/scrape', {
@@ -294,19 +305,30 @@ export default function SettingsPage() {
                         <CardFooter className="border-t border-[#253551]/10 bg-slate-50 mt-4 py-4 flex items-center justify-between">
                             <div className="flex flex-col gap-2 w-full">
                                 <div className="flex items-center justify-between w-full">
-                                    <Button
-                                        onClick={handleScrape}
-                                        disabled={isScraping || !websiteUrl}
-                                        className="w-full sm:w-auto bg-[#253551] text-white hover:bg-[#253551]/90 shadow-sm transition-all"
-                                    >
-                                        {isScraping ? (
-                                            <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Scraping Data...</>
-                                        ) : scrapeSuccess ? (
-                                            <><CheckCircle2 className="mr-2 h-4 w-4 text-green-400" /> Successfully Scraped</>
-                                        ) : (
-                                            <><RefreshCw className="mr-2 h-4 w-4" /> Save & Start Scraping</>
-                                        )}
-                                    </Button>
+                                    <div className="flex gap-2">
+                                        <Button
+                                            onClick={async () => {
+                                                await handleSaveSettings();
+                                                setScrapeSuccess(true);
+                                                setTimeout(() => setScrapeSuccess(false), 3000);
+                                            }}
+                                            variant="outline"
+                                            className="w-full sm:w-auto text-[#253551] border-[#253551]/20 hover:bg-[#253551]/5 shadow-sm transition-all"
+                                        >
+                                            Save Settings
+                                        </Button>
+                                        <Button
+                                            onClick={handleScrape}
+                                            disabled={isScraping || !websiteUrl}
+                                            className="w-full sm:w-auto bg-[#253551] text-white hover:bg-[#253551]/90 shadow-sm transition-all"
+                                        >
+                                            {isScraping ? (
+                                                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Scraping Data...</>
+                                            ) : (
+                                                <><RefreshCw className="mr-2 h-4 w-4" /> Save & Start Scraping</>
+                                            )}
+                                        </Button>
+                                    </div>
 
                                     {scrapeSuccess && (
                                         <span className="text-sm font-medium text-green-600 animate-in fade-in zoom-in duration-300">
