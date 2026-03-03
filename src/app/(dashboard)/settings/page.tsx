@@ -57,14 +57,15 @@ export default function SettingsPage() {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
 
-        await supabase.from('profiles').upsert({
-            id: user.id,
+        const { error } = await supabase.from('profiles').update({
             website_url: websiteUrl,
             global_instructions: instructions,
             default_language: defaultLanguage,
             instagram_url: instagramUrl,
             updated_at: new Date().toISOString()
-        });
+        }).eq('id', user.id);
+
+        if (error) console.error("Error saving settings:", error);
     };
 
     const handleAddSubscriber = async () => {

@@ -213,13 +213,12 @@ export default function DashboardPage() {
 
                 // Update the user's profile with the automatically extracted business info (logo, name, etc.)
                 if (user) {
-                    await supabase.from('profiles').upsert({
-                        id: user.id,
+                    await supabase.from('profiles').update({
                         business_name: data.data.businessName || profile?.business_name,
                         logo_url: data.data.businessLogo || profile?.logo_url,
                         address: data.data.businessAddress || profile?.address,
                         updated_at: new Date().toISOString()
-                    });
+                    }).eq('id', user.id);
 
                     // Update local state immediately so EmailEditor picks it up
                     setBusinessInfo({
