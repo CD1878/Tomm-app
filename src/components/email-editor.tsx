@@ -85,7 +85,7 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
                         <!-- Header Logo -->
                         <div style="padding: 30px 20px; text-align: center; border-bottom: 1px solid #f3f4f6;">
                             ${businessData?.logoUrl
-                    ? `<img src="${businessData.logoUrl}" alt="${businessData?.name || 'Logo'}" style="height: 60px; width: auto; max-width: 200px; object-fit: contain; display: block; margin: 0 auto;" />`
+                    ? `<img src="${businessData.logoUrl}" alt="${businessData?.name || 'Logo'}" style="height: 60px; width: auto; max-width: 200px; object-fit: contain; display: block; margin: 0 auto; filter: drop-shadow(0px 2px 10px rgba(0,0,0,0.15));" />`
                     : `<h2 style="margin: 0; font-family: Georgia, serif; font-size: 20px; letter-spacing: 0.2em; font-weight: 300; color: #111827; text-transform: uppercase;">${businessData?.name || 'JOUW RESTAURANT'}</h2>`
                 }
                         </div>
@@ -96,9 +96,11 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
                     : `<img src="https://images.unsplash.com/photo-1414235077428-33898ed1e829?q=80&w=800&auto=format&fit=crop" alt="Hero Fallback" style="width: 100%; height: 300px; object-fit: cover; display: block;" />`
                 }
                         
+                        <div style="display: none; max-height: 0px; overflow: hidden; mso-hide: all;">
+                            ${summary || 'Preheader text...'}&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;
+                        </div>
                         <div style="padding: 40px 32px;">
-                            <h2 style="margin-top: 0; font-size: 24px; font-weight: 700; color: #111827; margin-bottom: 8px;">${subject || 'Test E-mail'}</h2>
-                            <p style="color: #6B7280; font-style: italic; font-size: 15px; margin-top: 0; margin-bottom: 24px; line-height: 1.5;">${summary || 'Preheader text...'}</p>
+                            <h2 style="margin-top: 0; font-size: 24px; font-weight: 700; color: #111827; margin-bottom: 24px;">${subject || 'Test E-mail'}</h2>
                             
                             <hr style="border: 0; border-top: 1px solid #f3f4f6; margin: 0 0 24px 0;" />
                             
@@ -107,7 +109,7 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
                             <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-top: 40px;">
                                 <tr>
                                     <td align="center">
-                                        <a href="${campaign.buttonUrl || businessData?.website || '#'}" style="background-color: #111827; color: #ffffff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-block; font-size: 16px;">Reserveren</a>
+                                        <a href="${campaign?.buttonUrl || (businessData?.website ? (businessData.website.startsWith('http') ? businessData.website : 'https://' + businessData.website) : '#')}" style="background-color: #111827; color: #ffffff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-block; font-size: 16px;">${campaign?.callToAction || 'Reserveren'}</a>
                                     </td>
                                 </tr>
                             </table>
@@ -189,7 +191,7 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
                             <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-top: 40px;">
                                 <tr>
                                     <td align="center">
-                                        <a href="${campaign.buttonUrl || businessData?.website || '#'}" style="background-color: #111827; color: #ffffff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-block; font-size: 16px;">Reserveren</a>
+                                        <a href="${campaign.buttonUrl || businessData?.website || '#'}" style="background-color: #111827; color: #ffffff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-block; font-size: 16px;">${campaign.callToAction || 'Reserveren'}</a>
                                     </td>
                                 </tr>
                             </table>
@@ -346,13 +348,17 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
                     {/* Header Logo */}
                     <div className="py-10 flex flex-col items-center justify-center border-b border-black/5 px-8">
                         {businessData.logoUrl ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
-                                src={businessData.logoUrl}
-                                alt={businessData.name}
-                                className="h-16 w-auto object-contain"
-                                onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                            />
+                            // To ensure white logos are always visible, we place them in a container that can provide contrast if needed, 
+                            // or we use a CSS drop shadow that acts as a dark halo.
+                            <div className="bg-slate-800/5 p-4 rounded-xl flex items-center justify-center min-w-[120px]">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                    src={businessData.logoUrl}
+                                    alt={businessData.name}
+                                    className="h-16 w-auto object-contain drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]"
+                                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                />
+                            </div>
                         ) : (
                             <div className="flex flex-col items-center opacity-80 mb-2">
                                 <div className="w-20 h-16 border-2 border-black/80 rounded-sm relative flex justify-center items-end">
@@ -443,12 +449,12 @@ export function EmailEditor({ campaign, businessData, onSave, onCancel }: EmailE
                                                     window.open(websiteUrl, '_blank');
                                                 } else {
                                                     e.currentTarget.innerText = "Website ontbreekt!";
-                                                    setTimeout(() => { if (e.currentTarget) e.currentTarget.innerText = "Reserveer nu" }, 1500);
+                                                    setTimeout(() => { if (e.currentTarget) e.currentTarget.innerText = campaign.callToAction || "Reserveer nu" }, 1500);
                                                 }
                                             }}
                                             className="bg-[#1f2937] text-white hover:bg-black px-8 py-6 rounded-md font-semibold font-sans transition-all"
                                         >
-                                            Reserveer nu
+                                            {campaign.callToAction || 'Reserveer nu'}
                                         </Button>
                                     </div>
                                 )}
