@@ -298,12 +298,28 @@ export async function POST(req: Request) {
         ];
 
         // Ensure every campaign has an image (safety net) and aggressively strip ALL HTML/Markdown from the text
+
+        // 1. Ultimate Clearbit Logo Fallback
+        if (!object.businessLogo || object.businessLogo.length > 500 || object.businessLogo.toLowerCase().includes('not found') || object.businessLogo.toLowerCase().includes('null') || object.businessLogo.trim() === '') {
+            try {
+                // Clearbit provides a reliable 1-click fallback for company logos
+                object.businessLogo = `https://logo.clearbit.com/${new URL(targetUrl).hostname}`;
+                console.log("Applied Clearbit Ultimate Logo Fallback:", object.businessLogo);
+            } catch (e) {
+                console.error("Clearbit fallback failed");
+            }
+        }
+
+        // 2. Prioritize Real Scraped Website Images over generic Unsplash photos
+        const realWebsiteImages = Array.from(fallbackImageUrls);
+        const combinedFallbacks = realWebsiteImages.length >= 12 ? realWebsiteImages : [...realWebsiteImages, ...fallbackImages];
+
         if (object.campaigns) {
             object.campaigns = object.campaigns.map((camp, index) => {
                 let imgUrl = camp.imageUrl;
                 // If the AI left it blank or accidentally used the logo, replace it!
                 if (!imgUrl || imgUrl === object.businessLogo || imgUrl.toLowerCase().includes('logo')) {
-                    imgUrl = fallbackImages[index % fallbackImages.length];
+                    imgUrl = combinedFallbacks[index % combinedFallbacks.length];
                 }
 
                 // AI is notoriously stubborn about sneaking in HTML `<br>` or Markdown links `[Click Here](https...)`
