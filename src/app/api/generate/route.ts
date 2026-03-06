@@ -91,10 +91,12 @@ export async function POST(req: Request) {
                             const absUrl = new URL(src, targetUrl).href;
                             fallbackImageUrls.add(absUrl);
 
-                            const className = $(el).attr('class') || '';
-                            const idName = $(el).attr('id') || '';
+                            const attribs = $(el).attr() || {};
+                            const hasLogoKeyword = Object.values(attribs).some(val => val.toLowerCase().includes('logo')) || src.toLowerCase().includes('logo');
                             const altText = $(el).attr('alt') || '';
-                            if ([className, idName, altText, src].some(s => s.toLowerCase().includes('logo'))) {
+                            const isLikelyLogoFromAlt = altText.toLowerCase().includes('bar maeve') || altText.toLowerCase().includes('logo');
+
+                            if (hasLogoKeyword || isLikelyLogoFromAlt) {
                                 likelyLogoUrls.add(absUrl);
                             }
                         } catch (e) { }
@@ -138,6 +140,7 @@ export async function POST(req: Request) {
         }
 
         // PASS 3: Instagram strict headless visual extraction via Puppeteer
+        // PASS 3: Instagram strict headless visual extraction via Puppeteer & Picuki Fallback
         if (instagramUrl && instagramUrl.includes('instagram.com')) {
             console.log(`Attempting to scrape Instagram headlessly: ${instagramUrl}`);
             try {
@@ -149,20 +152,41 @@ export async function POST(req: Request) {
                 const browser = await puppeteer.launch({ headless: true });
                 const page = await browser.newPage();
 
-                await page.goto(instagramUrl, { waitUntil: 'networkidle2', timeout: 30000 });
-                await new Promise(r => setTimeout(r, 2000));
-                await page.evaluate(() => window.scrollBy(0, 1000));
-                await new Promise(r => setTimeout(r, 2000));
+                let images: string[] = [];
 
-                const images = await page.evaluate(() => {
-                    const imgs = Array.from(document.querySelectorAll('article img'));
-                    return imgs.map((img: any) => img.src).filter(Boolean);
-                });
+                try {
+                    await page.goto(instagramUrl, { waitUntil: 'networkidle2', timeout: 8000 });
+                    await new Promise(r => setTimeout(r, 2000));
+                    await page.evaluate(() => window.scrollBy(0, 1000));
+                    await new Promise(r => setTimeout(r, 2000));
+
+                    images = await page.evaluate(() => {
+                        const imgs = Array.from(document.querySelectorAll('article img'));
+                        return imgs.map((img: any) => img.src).filter(Boolean);
+                    });
+                } catch (timeoutErr) {
+                    console.log(`Instagram timeout/block detected. Falling back to Picuki...`);
+                    // Extract handle from URL (e.g. https://www.instagram.com/bar_maeve/ -> bar_maeve)
+                    const match = instagramUrl.match(/instagram\.com\/([^\/]+)/);
+                    if (match && match[1]) {
+                        const handle = match[1];
+                        await page.goto(`https://www.picuki.com/profile/${handle}`, { waitUntil: 'networkidle2', timeout: 15000 });
+                        await new Promise(r => setTimeout(r, 2000));
+                        await page.evaluate(() => window.scrollBy(0, 1000));
+                        await new Promise(r => setTimeout(r, 2000));
+
+                        images = await page.evaluate(() => {
+                            const imgs = Array.from(document.querySelectorAll('.post-image'));
+                            return imgs.map((img: any) => img.src).filter(Boolean);
+                        });
+                        console.log(`Picuki fallback found ${images.length} images.`);
+                    }
+                }
 
                 await browser.close();
 
                 if (images.length > 0) {
-                    console.log(`Found ${images.length} Instagram images natively. Uploading to Supabase...`);
+                    console.log(`Found ${images.length} Instagram/Picuki images natively. Uploading to Supabase...`);
                     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
                     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
                     const { createClient } = await import('@supabase/supabase-js');
@@ -197,10 +221,10 @@ export async function POST(req: Request) {
                         websiteContent += `\n\n--- MASSIVE COLLECTION OF EXPLICITLY FOUND INSTAGRAM IMAGES (PRIORITIZE THESE FIRST FOR HERO IMAGES) ---\n${images.slice(0, 24).join('\n')}\n`;
                     }
                 } else {
-                    console.log(`Puppeteer loaded Instagram but found 0 images (possible login block).`);
+                    console.log(`Puppeteer loaded Instagram but found 0 images (possible login block and Picuki failed).`);
                 }
             } catch (igError: any) {
-                console.log("Instagram Puppeteer scrape failed: ", igError.message);
+                console.log("Instagram/Picuki Puppeteer scrape completely failed: ", igError.message);
             }
         }
 
@@ -273,7 +297,7 @@ export async function POST(req: Request) {
             "https://images.unsplash.com/photo-1536964549204-cce9eab227bd?auto=format&fit=crop&q=80"  // Cocktails
         ];
 
-        // Ensure every campaign has an image (safety net)
+        // Ensure every campaign has an image (safety net) and aggressively strip ALL HTML/Markdown from the text
         if (object.campaigns) {
             object.campaigns = object.campaigns.map((camp, index) => {
                 let imgUrl = camp.imageUrl;
@@ -281,7 +305,21 @@ export async function POST(req: Request) {
                 if (!imgUrl || imgUrl === object.businessLogo || imgUrl.toLowerCase().includes('logo')) {
                     imgUrl = fallbackImages[index % fallbackImages.length];
                 }
-                return { ...camp, imageUrl: imgUrl };
+
+                // AI is notoriously stubborn about sneaking in HTML `<br>` or Markdown links `[Click Here](https...)`
+                // even when told not to. We rigorously scrub them out before saving to the DB.
+                let cleanBodyText = camp.bodyText || "";
+
+                // 1. Remove Markdown links: [Plaats vandaag...](https://...) -> Plaats vandaag...
+                cleanBodyText = cleanBodyText.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '$1');
+
+                // 2. Replace <br> or <br/> with double newlines
+                cleanBodyText = cleanBodyText.replace(/<br\s*\/?>/gi, '\n\n');
+
+                // 3. Strip any other lingering HTML tags entirely (e.g. <a>, <b>, <p>)
+                cleanBodyText = cleanBodyText.replace(/<\/?[^>]+(>|$)/g, "");
+
+                return { ...camp, imageUrl: imgUrl, bodyText: cleanBodyText };
             });
         }
 
