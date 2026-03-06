@@ -14,16 +14,11 @@ const EmailSchema = z.object({
     heroText: z.string(),
     bodyText: z.string().describe("The main email body. MUST be plain text ONLY. NEVER use HTML tags like <br> or <a>. Use \\n\\n for paragraphs."),
     callToAction: z.string(),
-    imageUrl: z.string().nullable().describe('URL of a relevant image extracted from the website/instagram context. Must be an absolute URL.'),
 });
 
 const CampaignsSchema = z.object({
     campaigns: z.array(EmailSchema).length(12),
     scrapedContextSummary: z.string(),
-    businessName: z.string().describe("The real name of the restaurant or business"),
-    businessAddress: z.string().describe("The physical address of the business"),
-    businessWebsite: z.string().describe("The homepage URL of the business"),
-    businessLogo: z.string().nullable().describe("Absolute URL to the business logo image. YOU MUST check the 'HIGH PROBABILITY LOGO URLS' section first. If none are good, you may fall back to others."),
 });
 
 export async function POST(req: Request) {
@@ -261,7 +256,7 @@ export async function POST(req: Request) {
         ${instructionsInjection}
         
         Instructions:
-        1. DEEP BUSINESS ANALYSIS: Analyze the business based on the scraped website/instagram content. Extract the core vibe, menu highlights, unique selling points, and crucially: ALL UPCOMING EVENTS, special action pages, agenda items, and CUSTOMER REVIEWS. Extract the business name, address, logo URL, and website URL.
+        1. DEEP BUSINESS ANALYSIS: Analyze the business based on the scraped website/instagram content. Extract the core vibe, menu highlights, unique selling points, and crucially: ALL UPCOMING EVENTS, special action pages, agenda items, and CUSTOMER REVIEWS.
         2. DYNAMIC TOPIC ENGINE & DATES: Create exactly 12 distinct email campaigns (Month 1 = Jan, 2 = Feb, etc). 
            - CRITICAL DATE INSTRUCTION: The current year is ${currentYear}. All events, greetings, and references must be for ${currentYear} and ${currentYear + 1}. NEVER use past years like 2023 or 2024.
            - DO NOT just use generic seasonal trends. You MUST base the campaign topics heavily on the actual EVENTS, ACTIONS, and REVIEWS you found on their website/instagram. 
@@ -271,14 +266,10 @@ export async function POST(req: Request) {
         3. TEXT LENGTH & FORMATTING: Write engaging, warm body text (at least 2 to 3 paragraphs). Make it beautiful, high-conversion, and structured. Use warm hospitality greetings. It should read like a premium marketing newsletter.
            - CRITICAL FORMATTING: ONLY use PLAIN TEXT. NEVER, EVER use HTML tags like <br>, <a>, or <b> in any of the fields. Separate paragraphs with exactly two newlines (\\n\\n).
            - EXTREME SEASONALITY: Make the text hyper-relevant to the exact season or month (e.g., heavily focus on summer terrace vibes in July/August, and warm, cozy winter/Christmas vibes in December). Tie the website's events and offerings to these seasons naturally. The text must read as an authentic, engaging newsletter for the customer.
-        4. IMAGE SELECTION & URL: Scan the provided context for real, absolute image links. You MUST prioritize using REAL IMAGES found in the 'MASSIVE COLLECTION OF EXPLICITLY FOUND INSTAGRAM IMAGES'. If there are no Instagram images, you may use the 'WEBSITE IMAGES'.
-           - ENFORCE VARIETY: NEVER repeat the same image twice across different months. Use 12 entirely unique images from the 'MASSIVE COLLECTION OF EXPLICITLY FOUND INSTAGRAM IMAGES' section.
-           - CRITICAL: NEVER hallucinate, make up, or use placeholder image URLs (like unsplash source). If you somehow exhaust all valid imagery, RETURN null. ANY URL YOU RETURN MUST BE AN ABSOLUTE URL starting with http:// or https://.
-           - CRITICAL: NEVER use the 'businessLogo' or any logo URL as the campaign 'imageUrl'. The hero image must be an actual photo, not a logo graphic.
-        5. CALL TO ACTION / BOOKING LINK: DO NOT put an HTML link in the body text or use HTML tags! Instead, put the call to action text (like "Reserveer Hier" or "Bekijk het menu") inside the 'callToAction' field.
-        6. The tone should match the presumed brand voice from the website and the positive sentiment from their reviews, UNLESS dictated otherwise by the Global Instructions. Ensure the texts are "normal" and read like a fun, general update without weird characters.
-        7. Provide a short summary of the specific events, reviews, and USPs you deduced and used as input in the 'scrapedContextSummary'.
-        8. CRITICAL LANGUAGE REQUIREMENT: You MUST generate all text, including the subject, summary (preview text), and bodyText exclusively in this language: ${language || 'Dutch'}. Overwrite any other language defaults.
+        4. CALL TO ACTION / BOOKING LINK: DO NOT put an HTML link in the body text or use HTML tags! Instead, put the call to action text (like "Reserveer Hier" or "Bekijk het menu") inside the 'callToAction' field.
+        5. The tone should match the presumed brand voice from the website and the positive sentiment from their reviews, UNLESS dictated otherwise by the Global Instructions. Ensure the texts are "normal" and read like a fun, general update without weird characters.
+        6. Provide a short summary of the specific events, reviews, and USPs you deduced and used as input in the 'scrapedContextSummary'.
+        7. CRITICAL LANGUAGE REQUIREMENT: You MUST generate all text, including the subject, summary (preview text), and bodyText exclusively in this language: ${language || 'Dutch'}. Overwrite any other language defaults.
       `,
         });
 
@@ -299,28 +290,37 @@ export async function POST(req: Request) {
 
         // Ensure every campaign has an image (safety net) and aggressively strip ALL HTML/Markdown from the text
 
-        // 1. Ultimate Clearbit Logo Fallback
-        if (!object.businessLogo || object.businessLogo.length > 500 || object.businessLogo.toLowerCase().includes('not found') || object.businessLogo.toLowerCase().includes('null') || object.businessLogo.trim() === '') {
-            try {
-                // Clearbit provides a reliable 1-click fallback for company logos
-                object.businessLogo = `https://logo.clearbit.com/${new URL(targetUrl).hostname}`;
-                console.log("Applied Clearbit Ultimate Logo Fallback:", object.businessLogo);
-            } catch (e) {
-                console.error("Clearbit fallback failed");
-            }
+        // 1. Deterministic Business Metrics
+        let determinedBusinessName = new URL(targetUrl).hostname.replace('www.', '').split('.')[0];
+        determinedBusinessName = determinedBusinessName.charAt(0).toUpperCase() + determinedBusinessName.slice(1);
+
+        let determinedLogo: string | null = null;
+        if (likelyLogoUrls.size > 0) {
+            determinedLogo = Array.from(likelyLogoUrls)[0];
+        } else {
+            // Clearbit provides a reliable 1-click fallback for company logos
+            determinedLogo = `https://logo.clearbit.com/${new URL(targetUrl).hostname}`;
+            console.log("Applied Clearbit Ultimate Logo Fallback:", determinedLogo);
         }
 
-        // 2. Prioritize Real Scraped Website Images over generic Unsplash photos
-        const realWebsiteImages = Array.from(fallbackImageUrls);
-        const combinedFallbacks = realWebsiteImages.length >= 12 ? realWebsiteImages : [...realWebsiteImages, ...fallbackImages];
+        // 2. Deterministic Image Assignment (Extracting IG image block to use deterministically)
+        // Extract Instagram links from context if they got generated there
+        const instaMatch = websiteContent.match(/--- MASSIVE COLLECTION OF EXPLICITLY FOUND INSTAGRAM IMAGES.*?---\n([\s\S]*?)(?=\n\n---|$)/i);
+        let instagramImageUrls: string[] = [];
+        if (instaMatch && instaMatch[1]) {
+            instagramImageUrls = instaMatch[1].split('\n').map(l => l.trim()).filter(l => l.startsWith('http'));
+        }
 
+        const realWebsiteImages = Array.from(fallbackImageUrls).filter(url => url !== determinedLogo && !url.toLowerCase().includes('logo'));
+
+        // Combine IG images and website images sequentially
+        const combinedFallbacks = [...instagramImageUrls, ...realWebsiteImages];
+        const activeImagePool = combinedFallbacks.length > 0 ? combinedFallbacks : fallbackImages;
+
+        let finalCampaigns: any[] = [];
         if (object.campaigns) {
-            object.campaigns = object.campaigns.map((camp, index) => {
-                let imgUrl = camp.imageUrl;
-                // If the AI left it blank or accidentally used the logo, replace it!
-                if (!imgUrl || imgUrl === object.businessLogo || imgUrl.toLowerCase().includes('logo')) {
-                    imgUrl = combinedFallbacks[index % combinedFallbacks.length];
-                }
+            finalCampaigns = object.campaigns.map((camp, index) => {
+                let imgUrl = activeImagePool[index % activeImagePool.length];
 
                 // AI is notoriously stubborn about sneaking in HTML `<br>` or Markdown links `[Click Here](https...)`
                 // even when told not to. We rigorously scrub them out before saving to the DB.
@@ -339,10 +339,19 @@ export async function POST(req: Request) {
             });
         }
 
-        console.log("---- SUCCESSFULLY GENERATED ----");
-        console.log("EXTRACTED LOGO:", object.businessLogo);
+        const finalData = {
+            ...object,
+            campaigns: finalCampaigns,
+            businessName: determinedBusinessName,
+            businessLogo: determinedLogo,
+            businessWebsite: targetUrl,
+            businessAddress: "Update address in settings"
+        };
 
-        return NextResponse.json({ success: true, data: object });
+        console.log("---- SUCCESSFULLY GENERATED ----");
+        console.log("EXTRACTED LOGO:", finalData.businessLogo);
+
+        return NextResponse.json({ success: true, data: finalData });
 
     } catch (error: any) {
         console.error('Error generating campaigns:', error);
