@@ -23,7 +23,19 @@ const CampaignsSchema = z.object({
 
 export async function POST(req: Request) {
     try {
+        const authHeader = req.headers.get('Authorization');
         let { websiteUrl, instagramUrl, globalInstructions, monthlyInstructions, language } = await req.json();
+
+        // 1. Setup Auth Server-Side
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+        const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+        const supabase = createClient(supabaseUrl, supabaseKey, {
+            global: { headers: { Authorization: authHeader || '' } }
+        });
+
+        // Test auth logic to see if user is actually authenticated in the API
+        const { data: { user } } = await supabase.auth.getUser();
+        console.log("SERVER SIDE GENERATION INITIATED FOR USER:", user?.id || "Unauthenticated");
 
         if (instagramUrl && !instagramUrl.includes('instagram.com')) {
             instagramUrl = instagramUrl.replace('@', '').trim();
@@ -79,8 +91,19 @@ export async function POST(req: Request) {
                     }
                 });
 
-                $('img').each((_, el) => {
+                $('img, div, section, header').each((_, el) => {
+                    // Try to get standard image sources
                     let src = $(el).attr('data-src') || $(el).attr('data-lazy-src') || $(el).attr('src');
+
+                    // Also try to get background-image from inline style
+                    if (!src) {
+                        const style = $(el).attr('style');
+                        if (style) {
+                            const bgMatch = style.match(/background-image:\s*url\s*\(\s*['"]?(.*?)['"]?\s*\)/i);
+                            if (bgMatch && bgMatch[1]) src = bgMatch[1];
+                        }
+                    }
+
                     if (src && !src.includes('data:image')) {
                         try {
                             const absUrl = new URL(src, targetUrl).href;
@@ -134,92 +157,75 @@ export async function POST(req: Request) {
             console.log("Cheerio pass failed:", e);
         }
 
-        // PASS 3: Instagram strict headless visual extraction via Puppeteer
-        // PASS 3: Instagram strict headless visual extraction via Puppeteer & Picuki Fallback
+        // PASS 3: Instagram Serverless Extraction via Jina AI & Picuki Fallback
         if (instagramUrl && instagramUrl.includes('instagram.com')) {
-            console.log(`Attempting to scrape Instagram headlessly: ${instagramUrl}`);
+            console.log(`Attempting to scrape Instagram via Jina + Picuki SERVERLESS: ${instagramUrl}`);
             try {
-                // Using stealth to bypass Instagram completely
-                const puppeteer = (await import('puppeteer-extra')).default;
-                const stealthModule: any = await import('puppeteer-extra-plugin-stealth');
-                const StealthPlugin = stealthModule.default || stealthModule;
-                puppeteer.use(StealthPlugin());
-                const browser = await puppeteer.launch({ headless: true });
-                const page = await browser.newPage();
+                const match = instagramUrl.match(/instagram\.com\/([^\/]+)/);
+                if (match && match[1]) {
+                    const handle = match[1];
+                    const picukiUrl = `https://www.picuki.com/profile/${handle}`;
+                    const jinaPicukiUrl = `https://r.jina.ai/${picukiUrl}`;
 
-                let images: string[] = [];
-
-                try {
-                    await page.goto(instagramUrl, { waitUntil: 'networkidle2', timeout: 8000 });
-                    await new Promise(r => setTimeout(r, 2000));
-                    await page.evaluate(() => window.scrollBy(0, 1000));
-                    await new Promise(r => setTimeout(r, 2000));
-
-                    images = await page.evaluate(() => {
-                        const imgs = Array.from(document.querySelectorAll('article img'));
-                        return imgs.map((img: any) => img.src).filter(Boolean);
+                    const jinaRes = await fetch(jinaPicukiUrl, {
+                        headers: {
+                            'Authorization': `Bearer ${process.env.FIRECRAWL_API_KEY || ''}`, // Optionally use if Jina requires it, else omit
+                            'X-Return-Format': 'markdown'
+                        }
                     });
-                } catch (timeoutErr) {
-                    console.log(`Instagram timeout/block detected. Falling back to Picuki...`);
-                    // Extract handle from URL (e.g. https://www.instagram.com/bar_maeve/ -> bar_maeve)
-                    const match = instagramUrl.match(/instagram\.com\/([^\/]+)/);
-                    if (match && match[1]) {
-                        const handle = match[1];
-                        await page.goto(`https://www.picuki.com/profile/${handle}`, { waitUntil: 'networkidle2', timeout: 15000 });
-                        await new Promise(r => setTimeout(r, 2000));
-                        await page.evaluate(() => window.scrollBy(0, 1000));
-                        await new Promise(r => setTimeout(r, 2000));
 
-                        images = await page.evaluate(() => {
-                            const imgs = Array.from(document.querySelectorAll('.post-image'));
-                            return imgs.map((img: any) => img.src).filter(Boolean);
-                        });
-                        console.log(`Picuki fallback found ${images.length} images.`);
-                    }
-                }
+                    if (jinaRes.ok) {
+                        const markdown = await jinaRes.text();
+                        // Extract all markdown image links: ![alt](url)
+                        const imageRegex = /!\[.*?\]\((https?:\/\/.*?\.jpg.*?)\)/gi;
+                        let matchImg;
+                        const extractedIgImages = new Set<string>();
 
-                await browser.close();
+                        while ((matchImg = imageRegex.exec(markdown)) !== null) {
+                            extractedIgImages.add(matchImg[1]);
+                        }
 
-                if (images.length > 0) {
-                    console.log(`Found ${images.length} Instagram/Picuki images natively. Uploading to Supabase...`);
-                    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-                    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-                    const { createClient } = await import('@supabase/supabase-js');
-                    const supabase = createClient(supabaseUrl, supabaseKey);
+                        const imagesList = Array.from(extractedIgImages);
+                        console.log(`Jina+Picuki fallback found ${imagesList.length} images.`);
 
-                    const permanentUrls: string[] = [];
-                    for (let i = 0; i < images.length && i < 24; i++) {
-                        try {
-                            const res = await fetch(images[i]);
-                            if (res.ok) {
-                                const buffer = await res.arrayBuffer();
-                                const fileName = `ig_${Date.now()}_${i}.jpg`;
-                                const { data, error } = await supabase.storage.from('campaign_images').upload(fileName, buffer, {
-                                    contentType: 'image/jpeg',
-                                    upsert: true
-                                });
-                                if (!error && data) {
-                                    const { data: publicData } = supabase.storage.from('campaign_images').getPublicUrl(fileName);
-                                    permanentUrls.push(publicData.publicUrl);
+                        if (imagesList.length > 0) {
+                            console.log(`Found ${imagesList.length} Instagram images natively. Uploading to Supabase...`);
+                            const permanentUrls: string[] = [];
+
+                            for (let i = 0; i < imagesList.length && i < 24; i++) {
+                                try {
+                                    const res = await fetch(imagesList[i]);
+                                    if (res.ok) {
+                                        const buffer = await res.arrayBuffer();
+                                        const fileName = `ig_${Date.now()}_${i}.jpg`;
+                                        const { data, error } = await supabase.storage.from('campaign_images').upload(fileName, buffer, {
+                                            contentType: 'image/jpeg',
+                                            upsert: true
+                                        });
+                                        if (!error && data) {
+                                            const { data: publicData } = supabase.storage.from('campaign_images').getPublicUrl(fileName);
+                                            permanentUrls.push(publicData.publicUrl);
+                                        }
+                                    }
+                                } catch (e) {
+                                    console.error("Failed to rehost IG image", e);
                                 }
                             }
-                        } catch (e) {
-                            console.error("Failed to rehost image", e);
-                        }
-                    }
 
-                    if (permanentUrls.length > 0) {
-                        console.log(`Successfully rehosted ${permanentUrls.length} images to Supabase.`);
-                        websiteContent += `\n\n--- MASSIVE COLLECTION OF EXPLICITLY FOUND INSTAGRAM IMAGES (PRIORITIZE THESE FIRST FOR HERO IMAGES) ---\n${permanentUrls.join('\n')}\n`;
+                            if (permanentUrls.length > 0) {
+                                console.log(`Successfully rehosted ${permanentUrls.length} images to Supabase.`);
+                                websiteContent += `\n\n--- MASSIVE COLLECTION OF EXPLICITLY FOUND INSTAGRAM IMAGES (PRIORITIZE THESE FIRST FOR HERO IMAGES) ---\n${permanentUrls.join('\n')}\n`;
+                            } else {
+                                console.log("Failed to rehost. Falling back to raw Picuki URLs.");
+                                websiteContent += `\n\n--- MASSIVE COLLECTION OF EXPLICITLY FOUND INSTAGRAM IMAGES (PRIORITIZE THESE FIRST FOR HERO IMAGES) ---\n${imagesList.slice(0, 24).join('\n')}\n`;
+                            }
+                        }
                     } else {
-                        console.log("Failed to upload any images. Falling back to raw URLs.");
-                        websiteContent += `\n\n--- MASSIVE COLLECTION OF EXPLICITLY FOUND INSTAGRAM IMAGES (PRIORITIZE THESE FIRST FOR HERO IMAGES) ---\n${images.slice(0, 24).join('\n')}\n`;
+                        console.log("Jina+Picuki request failed:", jinaRes.status);
                     }
-                } else {
-                    console.log(`Puppeteer loaded Instagram but found 0 images (possible login block and Picuki failed).`);
                 }
             } catch (igError: any) {
-                console.log("Instagram/Picuki Puppeteer scrape completely failed: ", igError.message);
+                console.log("Jina+Picuki Serverless scrape completely failed: ", igError.message);
             }
         }
 
@@ -291,8 +297,19 @@ export async function POST(req: Request) {
         // Ensure every campaign has an image (safety net) and aggressively strip ALL HTML/Markdown from the text
 
         // 1. Deterministic Business Metrics
-        let determinedBusinessName = new URL(targetUrl).hostname.replace('www.', '').split('.')[0];
-        determinedBusinessName = determinedBusinessName.charAt(0).toUpperCase() + determinedBusinessName.slice(1);
+        let determinedBusinessName = '';
+        try {
+            const $ = cheerio.load(websiteContent);
+            const titleMatch = websiteContent.match(/Title: (.*?)\n/);
+            if (titleMatch && titleMatch[1]) {
+                determinedBusinessName = titleMatch[1].split('-')[0].split('|')[0].trim();
+            }
+        } catch (e) { }
+
+        if (!determinedBusinessName || determinedBusinessName.length < 2) {
+            determinedBusinessName = new URL(targetUrl).hostname.replace('www.', '').split('.')[0];
+            determinedBusinessName = determinedBusinessName.charAt(0).toUpperCase() + determinedBusinessName.slice(1);
+        }
 
         let determinedLogo: string | null = null;
         if (likelyLogoUrls.size > 0) {
@@ -347,6 +364,41 @@ export async function POST(req: Request) {
             businessWebsite: targetUrl,
             businessAddress: "Update address in settings"
         };
+
+        // FINAL SERVER-SIDE SUPABASE SAVE (Bypasses unreliable client-side execution)
+        if (user) {
+            console.log("Saving generated data directly to Supabase server-side...");
+            // 1. Update Profile (Business Name & Logo)
+            const { error: profileErr } = await supabase.from('profiles').update({
+                business_name: determinedBusinessName,
+                logo_url: determinedLogo,
+                updated_at: new Date().toISOString()
+            }).eq('id', user.id);
+
+            if (profileErr) console.error("Database Save Error (Profiles):", profileErr.message);
+
+            // 2. Clear out existing campaigns to prevent duplicates
+            await supabase.from('campaigns').delete().eq('user_id', user.id);
+
+            // 3. Insert 12 new campaigns
+            const dbCampaignsRowBatch = finalData.campaigns.map((camp: any) => ({
+                user_id: user.id,
+                month: camp.month,
+                month_name: camp.monthName,
+                subject: camp.subject,
+                summary: camp.summary || camp.bodyText?.substring(0, 100) + '...',
+                bodyText: camp.bodyText,
+                image_url: camp.imageUrl,
+                send_date: `${camp.monthName.substring(0, 3)} 27th`,
+                call_to_action: camp.callToAction,
+                status: 'draft'
+            }));
+
+            const { error: campErr } = await supabase.from('campaigns').insert(dbCampaignsRowBatch);
+            if (campErr) console.error("Database Save Error (Campaigns):", campErr.message);
+
+            console.log(`Successfully saved Profile + ${dbCampaignsRowBatch.length} Campaigns for User ${user.id}`);
+        }
 
         console.log("---- SUCCESSFULLY GENERATED ----");
         console.log("EXTRACTED LOGO:", finalData.businessLogo);

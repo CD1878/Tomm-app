@@ -16,6 +16,7 @@ export default function SettingsPage() {
     const [isScraping, setIsScraping] = useState(false);
     const [scrapeSuccess, setScrapeSuccess] = useState(false);
     const [scrapeError, setScrapeError] = useState("");
+    const [businessName, setBusinessName] = useState("");
     const [websiteUrl, setWebsiteUrl] = useState("");
     const [instagramUrl, setInstagramUrl] = useState("");
     const [instructions, setInstructions] = useState("");
@@ -39,6 +40,7 @@ export default function SettingsPage() {
             // Fetch profile data
             const { data: profile } = await supabase.from('profiles').select('*').eq('id', userId).single();
             if (profile) {
+                if (profile.business_name) setBusinessName(profile.business_name);
                 if (profile.global_instructions) setInstructions(profile.global_instructions);
                 if (profile.default_language) setDefaultLanguage(profile.default_language);
                 if (profile.website_url) setWebsiteUrl(profile.website_url);
@@ -57,13 +59,15 @@ export default function SettingsPage() {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
 
-        const { error } = await supabase.from('profiles').update({
+        const { error } = await supabase.from('profiles').upsert({
+            id: user.id,
+            business_name: businessName,
             website_url: websiteUrl,
             global_instructions: instructions,
             default_language: defaultLanguage,
             instagram_url: instagramUrl,
             updated_at: new Date().toISOString()
-        }).eq('id', user.id);
+        });
 
         if (error) console.error("Error saving settings:", error);
     };
@@ -254,6 +258,19 @@ export default function SettingsPage() {
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-6">
+                            <div className="space-y-2">
+                                <Label htmlFor="businessName" className="text-[#253551] font-medium">Business Name</Label>
+                                <div className="relative group">
+                                    <Input
+                                        id="businessName"
+                                        value={businessName}
+                                        onChange={(e) => setBusinessName(e.target.value)}
+                                        placeholder="Bijv. Café Het Paardje"
+                                        className="bg-white border-[#253551]/20 focus-visible:ring-1 focus-visible:ring-[#253551] text-black placeholder:text-black/40 h-11"
+                                    />
+                                </div>
+                            </div>
+
                             <div className="space-y-2">
                                 <Label htmlFor="website" className="text-[#253551] font-medium">Website URL</Label>
                                 <div className="relative group">

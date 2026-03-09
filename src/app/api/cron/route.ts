@@ -38,12 +38,16 @@ export async function GET(req: Request) {
 
         // 2. Process each campaign
         for (const campaign of campaignsToSend) {
-            const { user_id, subject, summary, bodyText, image_url, id } = campaign;
+            const { user_id, subject, summary, bodyText, image_url, id, call_to_action } = campaign;
 
             // Fetch business data for the user (to populate sender and logo)
             const { data: profile } = await supabase.from('profiles').select('*').eq('id', user_id).single();
             const senderName = profile?.business_name || 'Your Hospitality Business';
-            const website = profile?.website_url ? `${profile.website_url}/#tebi-reservations` : '#';
+
+            const websiteStr = profile?.website_url || '';
+            const absoluteWebsite = websiteStr ? (websiteStr.startsWith('http') ? websiteStr : `https://${websiteStr}`) : '#';
+            const website = absoluteWebsite;
+
             const logoUrl = profile?.logo_url || null;
 
             // Fetch active contacts for this specific tenant via RPC
@@ -65,7 +69,7 @@ export async function GET(req: Request) {
                         <!-- Header Logo -->
                         <div style="padding: 30px 20px; text-align: center; border-bottom: 1px solid #f3f4f6;">
                             ${logoUrl
-                    ? `<img src="${logoUrl}" alt="${senderName}" style="height: 60px; width: auto; max-width: 200px; object-fit: contain; display: block; margin: 0 auto;" />`
+                    ? `<img src="${logoUrl}" alt="${senderName}" style="height: 60px; width: auto; max-width: 200px; object-fit: contain; display: block; margin: 0 auto; filter: drop-shadow(0px 2px 10px rgba(0,0,0,0.15));" />`
                     : `<h2 style="margin: 0; font-family: Georgia, serif; font-size: 20px; letter-spacing: 0.2em; font-weight: 300; color: #111827; text-transform: uppercase;">${senderName}</h2>`
                 }
                         </div>
@@ -76,9 +80,11 @@ export async function GET(req: Request) {
                     : `<img src="https://images.unsplash.com/photo-1414235077428-33898ed1e829?q=80&w=800&auto=format&fit=crop" alt="Hero Fallback" style="width: 100%; height: 300px; object-fit: cover; display: block;" />`
                 }
                         
+                        <div style="display: none; max-height: 0px; overflow: hidden; mso-hide: all;">
+                            ${summary}&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;
+                        </div>
                         <div style="padding: 40px 32px;">
-                            <h2 style="margin-top: 0; font-size: 24px; font-weight: 700; color: #111827; margin-bottom: 8px;">${subject}</h2>
-                            <p style="color: #6B7280; font-style: italic; font-size: 15px; margin-top: 0; margin-bottom: 24px; line-height: 1.5;">${summary}</p>
+                            <h2 style="margin-top: 0; font-size: 24px; font-weight: 700; color: #111827; margin-bottom: 24px;">${subject}</h2>
                             
                             <hr style="border: 0; border-top: 1px solid #f3f4f6; margin: 0 0 24px 0;" />
                             
@@ -87,7 +93,7 @@ export async function GET(req: Request) {
                             <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-top: 40px;">
                                 <tr>
                                     <td align="center">
-                                        <a href="${website}" style="background-color: #111827; color: #ffffff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-block; font-size: 16px;">Reserveren</a>
+                                        <a href="${website}" style="background-color: #111827; color: #ffffff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-block; font-size: 16px;">${call_to_action || 'Reserveren'}</a>
                                     </td>
                                 </tr>
                             </table>

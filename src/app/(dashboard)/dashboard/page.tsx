@@ -105,6 +105,7 @@ export default function DashboardPage() {
                     summary: dbCamp.summary,
                     body: dbCamp.bodyText,
                     imageUrl: dbCamp.image_url,
+                    callToAction: dbCamp.call_to_action,
                     status: dbCamp.status,
                     date: dbCamp.send_date,
                     stats_opens: dbCamp.stats_opens,
@@ -182,6 +183,7 @@ export default function DashboardPage() {
             const globalInstructions = profile?.global_instructions || '';
             const savedLanguage = profile?.default_language || 'NL';
             const targetWebsite = profile?.website_url || '';
+            const instagramUrl = profile?.instagram_url || '';
 
             if (!targetWebsite) {
                 alert("Vul eerst je Website URL in bij Settings voordat je campagnes genereert!");
@@ -189,13 +191,18 @@ export default function DashboardPage() {
                 return;
             }
 
+            const { data: { session } } = await supabase.auth.getSession();
+            const token = session?.access_token;
+
             const response = await fetch('/api/generate', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Authorization': token ? `Bearer ${token}` : '',
                 },
                 body: JSON.stringify({
                     websiteUrl: targetWebsite,
+                    instagramUrl: instagramUrl,
                     globalInstructions,
                     monthlyInstructions,
                     language: savedLanguage
@@ -210,63 +217,19 @@ export default function DashboardPage() {
             const data = await response.json();
 
             if (data.data?.campaigns && data.data.campaigns.length > 0) {
+                // Update local state immediately so EmailEditor picks it up
+                setBusinessInfo({
+                    name: data.data.businessName || profile?.business_name || 'Your Hospitality Business',
+                    logoUrl: data.data.businessLogo || profile?.logo_url || '',
+                    website: targetWebsite,
+                    address: data.data.businessAddress || profile?.address || '',
+                    zipCode: profile?.zip_code || ''
+                });
 
-                // Update the user's profile with the automatically extracted business info (logo, name, etc.)
-                if (user) {
-                    await supabase.from('profiles').update({
-                        business_name: data.data.businessName || profile?.business_name,
-                        logo_url: data.data.businessLogo || profile?.logo_url,
-                        address: data.data.businessAddress || profile?.address,
-                        updated_at: new Date().toISOString()
-                    }).eq('id', user.id);
-
-                    // Update local state immediately so EmailEditor picks it up
-                    setBusinessInfo({
-                        name: data.data.businessName || profile?.business_name || 'Your Hospitality Business',
-                        logoUrl: data.data.businessLogo || profile?.logo_url || '',
-                        website: targetWebsite,
-                        address: data.data.businessAddress || profile?.address || '',
-                        zipCode: profile?.zip_code || ''
-                    });
-                }
-
-                // For MVP: We will save these generated campaigns to the Supabase database
-                if (user) {
-                    // First, clear out any existing campaigns for this user to prevent duplicates
-                    await supabase.from('campaigns').delete().eq('user_id', user.id);
-                }
-
-                for (const campaign of data.data.campaigns) {
-                    await supabase.from('campaigns').insert([{
-                        user_id: user?.id,
-                        month: campaign.month,
-                        month_name: campaign.monthName,
-                        subject: campaign.subject,
-                        summary: campaign.summary || campaign.bodyText?.substring(0, 100) + '...',
-                        bodyText: campaign.bodyText,
-                        image_url: campaign.imageUrl,
-                        send_date: `${campaign.monthName.substring(0, 3)} 27th`,
-                        status: 'draft'
-                    }]);
-                }
+                console.log("Setting business info logo to:", data.data.businessLogo || profile?.logo_url);
                 fetchCampaigns(); // Refresh the list from the database
             } else if (data.campaigns && data.campaigns.length > 0) {
                 // Fallback for different response format
-                if (user) {
-                    await supabase.from('campaigns').delete().eq('user_id', user.id);
-                }
-
-                for (const campaign of data.campaigns) {
-                    await supabase.from('campaigns').insert([{
-                        user_id: user?.id,
-                        month: campaign.month,
-                        month_name: campaign.monthName || campaign.name,
-                        subject: campaign.subject,
-                        summary: campaign.summary || 'Generated by AI',
-                        send_date: `${campaign.name?.substring(0, 3) || 'Unk'} 27th`,
-                        status: 'draft'
-                    }]);
-                }
                 fetchCampaigns();
             } else {
                 throw new Error("Invalid API response format");
